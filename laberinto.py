@@ -1,0 +1,93 @@
+import time
+
+
+def imprimir_laberinto(tablero):
+    for fila in tablero:
+        for casilla in fila:
+            print(casilla, end="")
+        print()
+    print()
+
+
+def resolver_laberinto(tablero, x, y, x_fin, y_fin, camino):
+    if x == x_fin and y == y_fin:
+        tablero[x][y] = "🟩"
+        camino.append((x, y))
+        return True
+
+    if x < 0 or x >= len(tablero) or y < 0 or y >= len(tablero[0]):
+        return False
+
+    if tablero[x][y] != "⬜":
+        return False
+
+    tablero[x][y] = "🟩"
+    camino.append((x, y))
+
+    if resolver_laberinto(tablero, x + 1, y, x_fin, y_fin, camino):
+        return True
+    if resolver_laberinto(tablero, x, y + 1, x_fin, y_fin, camino):
+        return True
+    if resolver_laberinto(tablero, x - 1, y, x_fin, y_fin, camino):
+        return True
+    if resolver_laberinto(tablero, x, y - 1, x_fin, y_fin, camino):
+        return True
+
+    tablero[x][y] = "⬜"
+    camino.pop()
+    return False
+
+
+pequeno = [
+    ["⬜", "⬛", "⬜", "⬜"],
+    ["⬜", "⬜", "⬜", "⬛"],
+    ["⬛", "⬛", "⬜", "⬛"],
+    ["⬜", "⬜", "⬜", "⬜"]
+]
+
+mediano = [
+    ["⬜", "⬜", "⬛", "⬜", "⬜", "⬜", "⬜", "⬜"],
+    ["⬛", "⬜", "⬛", "⬜", "⬛", "⬛", "⬛", "⬜"],
+    ["⬜", "⬜", "⬜", "⬜", "⬛", "⬜", "⬜", "⬜"],
+    ["⬜", "⬛", "⬛", "⬜", "⬛", "⬜", "⬛", "⬜"],
+    ["⬜", "⬜", "⬜", "⬜", "⬜", "⬜", "⬛", "⬜"],
+    ["⬛", "⬛", "⬛", "⬛", "⬜", "⬛", "⬛", "⬜"],
+    ["⬜", "⬜", "⬜", "⬛", "⬜", "⬜", "⬜", "⬜"],
+    ["⬜", "⬛", "⬜", "⬜", "⬜", "⬛", "⬛", "⬜"]
+]
+
+grande = [
+    ["⬜", "⬜", "⬜", "⬛", "⬜", "⬜", "⬜", "⬜", "⬜", "⬜", "⬛", "⬜"],
+    ["⬛", "⬛", "⬜", "⬛", "⬜", "⬛", "⬛", "⬛", "⬜", "⬜", "⬛", "⬜"],
+    ["⬜", "⬜", "⬜", "⬜", "⬜", "⬜", "⬜", "⬛", "⬜", "⬛", "⬛", "⬜"],
+    ["⬜", "⬛", "⬛", "⬛", "⬛", "⬛", "⬜", "⬛", "⬜", "⬜", "⬜", "⬜"],
+    ["⬜", "⬜", "⬜", "⬜", "⬜", "⬛", "⬜", "⬛", "⬛", "⬛", "⬛", "⬜"],
+    ["⬛", "⬛", "⬛", "⬜", "⬜", "⬜", "⬜", "⬜", "⬜", "⬜", "⬛", "⬜"],
+    ["⬜", "⬜", "⬛", "⬜", "⬛", "⬛", "⬛", "⬛", "⬛", "⬜", "⬛", "⬜"],
+    ["⬜", "⬜", "⬜", "⬜", "⬛", "⬜", "⬜", "⬜", "⬜", "⬜", "⬜", "⬜"],
+    ["⬜", "⬛", "⬛", "⬜", "⬛", "⬜", "⬛", "⬛", "⬛", "⬛", "⬛", "⬜"],
+    ["⬜", "⬜", "⬛", "⬜", "⬜", "⬜", "⬛", "⬜", "⬜", "⬜", "⬛", "⬜"],
+    ["⬛", "⬜", "⬛", "⬛", "⬛", "⬜", "⬛", "⬜", "⬛", "⬜", "⬜", "⬜"],
+    ["⬜", "⬜", "⬜", "⬜", "⬜", "⬜", "⬜", "⬜", "⬛", "⬛", "⬛", "⬜"]
+]
+
+pruebas = [
+    ("Pequeno (4x4)", pequeno, 0, 0, 3, 3),
+    ("Mediano (8x8)", mediano, 0, 0, 7, 7),
+    ("Grande (12x12)", grande, 0, 0, 11, 11)
+]
+
+for nombre, laberinto, x1, y1, x2, y2 in pruebas:
+    print("Probando:", nombre)
+    camino = []
+    copia = [fila[:] for fila in laberinto]
+
+    t_inicio = time.time()
+    resolver_laberinto(copia, x1, y1, x2, y2, camino)
+    t_fin = time.time()
+
+    tiempo = t_fin - t_inicio
+    print("Tiempo:", f"{tiempo:.6f}", "segundos")
+    print("Pasos:", len(camino))
+    print("Laberinto resuelto:")
+    imprimir_laberinto(copia)
