@@ -47,13 +47,23 @@ La solución implementada en [`laberinto.py`](laberinto.py) utiliza una **búsqu
 
 ## 3. Casos de Prueba
 
-Se definieron 3 escenarios de prueba de escala progresiva:
+Se definieron 6 escenarios de prueba en [`laberinto.py`](laberinto.py), agrupados en dos familias:
+
+**Casos "peine" (escala progresiva, caso menos favorable):** cada columna par es un callejón sin salida abierto de arriba a abajo, y todas las columnas solo se conectan entre sí por la fila superior. Como la exploración prueba `abajo` primero, el algoritmo debe recorrer y deshacer cada callejón completo antes de encontrar el camino real (por la fila 0 hasta la última columna), forzando trabajo proporcional al tamaño del tablero.
 
 | Caso | Dimensiones | Coordenadas Inicio | Coordenadas Fin |
 |---|---|---|---|
-| **Pequeño** | $4 \times 4$ | `(0, 0)` | `(3, 3)` |
-| **Mediano** | $8 \times 8$ | `(0, 0)` | `(7, 7)` |
-| **Grande** | $12 \times 12$ | `(0, 0)` | `(11, 11)` |
+| **Pequeño** | $5 \times 5$ | `(0, 0)` | `(4, 4)` |
+| **Mediano** | $9 \times 9$ | `(0, 0)` | `(8, 8)` |
+| **Grande** | $14 \times 15$ | `(0, 0)` | `(13, 14)` |
+
+**Casos rectangulares ($N \neq M$):** laberintos "perfectos" (un único camino posible entre dos casillas cualesquiera, generados con DFS) sobre tableros no cuadrados, garantizando que **todas** las casillas libres sean alcanzables desde el inicio.
+
+| Caso | Dimensiones | Coordenadas Inicio | Coordenadas Fin |
+|---|---|---|---|
+| **Rectangular ancho** | $3 \times 15$ | `(0, 0)` | `(2, 14)` |
+| **Rectangular alto** | $15 \times 3$ | `(0, 0)` | `(14, 2)` |
+| **Rectangular extra ancho** | $7 \times 21$ | `(0, 0)` | `(6, 20)` |
 
 ---
 
@@ -69,15 +79,15 @@ Se definieron 3 escenarios de prueba de escala progresiva:
 
 ## 5. Medición Empírica de Tiempos
 
-Resultados obtenidos ejecutando el script [`laberinto.py`](laberinto.py):
+Resultados obtenidos ejecutando el script [`laberinto.py`](laberinto.py) sobre los casos "peine" (los rectangulares no se incluyen aquí por ser aleatorios y no tener una escala progresiva comparable):
 
 | Tamaño | Dimensiones | Pasos Solución | Tiempo de Ejecución (s) |
 |---|---|---|---|
-| Pequeño | $4 \times 4$ | 7 pasos | ~0.000011 s |
-| Mediano | $8 \times 8$ | 15 pasos | ~0.000016 s |
-| Grande | $12 \times 12$ | 23 pasos | ~0.000009 s |
+| Pequeño | $5 \times 5$ | 9 pasos | ~0.000026 s |
+| Mediano | $9 \times 9$ | 17 pasos | ~0.000041 s |
+| Grande | $14 \times 15$ | 28 pasos | ~0.000093 s |
 
-> **Nota:** La variación mínima de microsegundos entre tamaños se debe a la posición favorable de la meta en la rama de exploración directa (abajo/derecha) para estos casos de prueba.
+> **Nota:** A diferencia de un laberinto abierto, en el caso "peine" el algoritmo sí debe agotar cada callejón sin salida (bajar hasta el fondo, fallar, deshacer el camino) antes de continuar al siguiente, por lo que el tiempo crece de forma consistente con el tamaño del tablero.
 
 ---
 
