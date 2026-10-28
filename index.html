@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laberintos: 5 Estrategias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous"></script>
+<script src="resultados.js"></script>
+<style>
+:root {
+  --bg: #070b16; --bg2: #0d1426; --card: #111a30; --borde: #1f2b47; --texto: #e6ebf5; --suave: #8b97b3;
+  --pared: #0a0f1d; --libre: #1b2540; --acento: #a855f7;
+  --fb: #ef4444; --bt: #f59e0b; --gr: #22c55e; --dc: #3b82f6; --pd: #a855f7;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--texto); font: 16px/1.6 Inter, system-ui, sans-serif; }
+a { color: inherit; }
+code, pre, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+.envoltura { max-width: 1240px; margin: 0 auto; padding: 0 16px; }
+section { padding: 72px 0; }
+h2 { font-size: clamp(1.6rem, 3vw, 2.3rem); margin: 0 0 8px; letter-spacing: -0.02em; }
+.sub { color: var(--suave); margin: 0 0 32px; max-width: 760px; }
+.etiqueta { display: inline-block; font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--acento); margin-bottom: 8px; }
+
+/* ---------- Hero ---------- */
+.hero { position: relative; overflow: hidden; padding: 96px 0 72px; border-bottom: 1px solid var(--borde);
+  background: radial-gradient(1000px 500px at 80% -10%, #a855f733, transparent 60%), radial-gradient(800px 400px at 0% 110%, #3b82f62a, transparent 60%); }
+#fondo { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; }
+.hero .envoltura { position: relative; }
+.hero h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); line-height: 1.05; margin: 0 0 16px; letter-spacing: -0.03em; font-weight: 800; }
+.degradado { background: linear-gradient(90deg, var(--fb), var(--bt), var(--gr), var(--dc), var(--pd)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p { font-size: 1.15rem; color: var(--suave); max-width: 680px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: #ffffff0d; border: 1px solid var(--borde); font-size: .9rem; }
+.punto { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.botones { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { appearance: none; border: 1px solid var(--borde); background: var(--card); color: var(--texto); padding: 10px 18px; border-radius: 10px; font: 600 .95rem Inter, sans-serif; cursor: pointer; text-decoration: none; transition: transform .15s, background .15s, border-color .15s; }
+.btn:hover { transform: translateY(-1px); border-color: #3a4a72; }
+.btn.primario { background: linear-gradient(135deg, #7c3aed, #a855f7); border-color: transparent; }
+.btn:disabled { opacity: .5; cursor: default; transform: none; }
+
+/* ---------- Arena ---------- */
+.controles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; background: var(--card); border: 1px solid var(--borde); border-radius: 16px; padding: 18px; margin-bottom: 20px; }
+.control label { display: flex; justify-content: space-between; font-size: .85rem; color: var(--suave); margin-bottom: 6px; }
+.control label b { color: var(--texto); font-family: "JetBrains Mono", monospace; }
+input[type=range] { width: 100%; accent-color: var(--acento); }
+.acciones { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; grid-column: 1 / -1; }
+.pista { color: var(--suave); font-size: .85rem; margin-left: auto; }
+.tableros { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.tablero { background: var(--card); border: 1px solid var(--borde); border-radius: 14px; padding: 12px; transition: border-color .3s, box-shadow .3s; }
+.tablero.gano { box-shadow: 0 0 0 1px var(--c), 0 0 30px -6px var(--c); border-color: var(--c); }
+.tablero h3 { margin: 0 0 8px; font-size: .95rem; display: flex; align-items: center; gap: 8px; }
+.tablero canvas { width: 100%; aspect-ratio: 1; display: block; border-radius: 8px; cursor: crosshair; touch-action: none; background: var(--pared); }
+.metricas { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin-top: 10px; font-size: .8rem; color: var(--suave); }
+.metricas b { color: var(--texto); font-family: "JetBrains Mono", monospace; font-weight: 600; }
+.estado { grid-column: 1 / -1; font-weight: 600; font-size: .85rem; min-height: 1.4em; }
+.ok { color: var(--gr); } .malo { color: var(--bt); } .fallo { color: var(--fb); }
+.podio { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; min-height: 40px; }
+.podio .chip { animation: entra .4s ease-out; }
+@keyframes entra { from { opacity: 0; transform: translateY(6px); } }
+
+/* ---------- Estrategias ---------- */
+.pestanas { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.pestana { border: 1px solid var(--borde); background: transparent; color: var(--suave); padding: 8px 14px; border-radius: 999px; cursor: pointer; font: 600 .9rem Inter, sans-serif; display: inline-flex; gap: 8px; align-items: center; }
+.pestana[aria-selected=true] { color: var(--texto); background: var(--card); border-color: var(--c); box-shadow: inset 0 0 0 1px var(--c); }
+.detalle { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 20px; }
+@media (max-width: 860px) { .detalle { grid-template-columns: 1fr; } }
+.tarjeta { background: var(--card); border: 1px solid var(--borde); border-radius: 16px; padding: 22px; }
+.tarjeta h3 { margin-top: 0; font-size: 1.4rem; }
+.complejidad { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+.complejidad div { flex: 1; min-width: 130px; background: var(--bg2); border: 1px solid var(--borde); border-radius: 12px; padding: 10px 14px; }
+.complejidad small { color: var(--suave); display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
+.complejidad b { font-family: "JetBrains Mono", monospace; font-size: 1.1rem; }
+.pros li { margin: 4px 0; }
+pre { margin: 0; background: #0a1020; border: 1px solid var(--borde); border-radius: 12px; padding: 16px; overflow: auto; font-size: .8rem; line-height: 1.55; max-height: 540px; }
+.k { color: #c084fc; } .s { color: #86efac; } .c { color: #64748b; font-style: italic; } .n { color: #fbbf24; } .f { color: #60a5fa; }
+
+/* ---------- Resultados ---------- */
+.barra-opciones { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.grupo { display: inline-flex; background: var(--card); border: 1px solid var(--borde); border-radius: 10px; padding: 3px; }
+.grupo button { border: 0; background: transparent; color: var(--suave); padding: 7px 14px; border-radius: 8px; cursor: pointer; font: 600 .85rem Inter, sans-serif; }
+.grupo button[aria-pressed=true] { background: #ffffff14; color: var(--texto); }
+.grafica { position: relative; height: 420px; }
+.tabla-scroll { overflow-x: auto; margin-top: 20px; }
+table { border-collapse: collapse; width: 100%; font-size: .85rem; }
+th, td { padding: 9px 12px; border-bottom: 1px solid var(--borde); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--suave); font-weight: 600; }
+td.mono { font-family: "JetBrains Mono", monospace; }
+.aviso { color: var(--suave); background: var(--card); border: 1px dashed var(--borde); padding: 16px; border-radius: 12px; }
+
+/* ---------- Complejidad teórica ---------- */
+.barras { display: grid; gap: 12px; margin-top: 20px; }
+.fila-barra { display: grid; grid-template-columns: 190px 1fr 210px; gap: 12px; align-items: center; font-size: .9rem; }
+@media (max-width: 700px) { .fila-barra { grid-template-columns: 1fr; gap: 4px; } }
+.pista-barra { height: 14px; background: var(--bg2); border-radius: 999px; overflow: hidden; }
+.relleno { height: 100%; border-radius: 999px; background: var(--c); transition: width .35s; box-shadow: 0 0 16px -2px var(--c); }
+.fila-barra .mono { color: var(--suave); font-size: .8rem; }
+
+/* ---------- Veredicto ---------- */
+.ganador { position: relative; overflow: hidden; border-radius: 24px; padding: clamp(24px, 5vw, 48px); border: 1px solid #a855f766;
+  background: radial-gradient(600px 300px at 100% 0%, #a855f740, transparent 70%), var(--card); }
+.ganador h2 { font-size: clamp(1.8rem, 4vw, 3rem); }
+.trofeo { font-size: 3.5rem; line-height: 1; }
+.cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-top: 24px; }
+.cifra { background: #00000033; border: 1px solid var(--borde); border-radius: 14px; padding: 16px; }
+.cifra b { display: block; font-size: 1.6rem; font-family: "JetBrains Mono", monospace; }
+.cifra span { color: var(--suave); font-size: .85rem; }
+footer { color: var(--suave); font-size: .85rem; padding: 32px 0 48px; border-top: 1px solid var(--borde); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <canvas id="fondo" aria-hidden="true"></canvas>
+  <div class="envoltura">
+    <span class="etiqueta">Análisis y Diseño de Algoritmos · 2026-2</span>
+    <h1>Resolver laberintos:<br><span class="degradado">5 estrategias, 1 ganador</span></h1>
+    <p>Fuerza bruta, backtracking con poda, voraz, divide y vencerás y programación dinámica compiten por encontrar el <strong>camino más corto</strong>, desde laberintos de juguete hasta laberintos de un millón de casillas.</p>
+    <div class="chips" id="chips-alg"></div>
+    <div class="botones">
+      <a class="btn primario" href="#arena">▶ Ver la carrera</a>
+      <a class="btn" href="#resultados">📊 Resultados</a>
+      <a class="btn" href="#veredicto">🏆 Veredicto</a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="arena">
+  <div class="envoltura">
+    <span class="etiqueta">La arena</span>
+    <h2>Carrera en vivo</h2>
+    <p class="sub">Los 5 algoritmos resuelven el <em>mismo</em> laberinto al mismo ritmo: en cada cuadro, cada uno explora la misma cantidad de casillas. Gana el que necesita <strong>menos trabajo</strong>. Las zonas más intensas son casillas visitadas varias veces. <strong>Haz clic o arrastra sobre un tablero para poner o quitar paredes.</strong></p>
+
+    <div class="controles">
+      <div class="control"><label for="tam">Tamaño <b id="tam-v"></b></label><input id="tam" type="range" min="7" max="101" step="2" value="31"></div>
+      <div class="control"><label for="cic">Ciclos (paredes derribadas) <b id="cic-v"></b></label><input id="cic" type="range" min="0" max="40" step="1" value="10"></div>
+      <div class="control"><label for="vel">Velocidad (casillas / cuadro) <b id="vel-v"></b></label><input id="vel" type="range" min="0" max="100" value="50"></div>
+      <div class="acciones">
+        <button class="btn primario" id="b-carrera">▶ Iniciar carrera</button>
+        <button class="btn" id="b-pausa" disabled>⏸ Pausa</button>
+        <button class="btn" id="b-nuevo">🎲 Nuevo laberinto</button>
+        <button class="btn" id="b-instante">⚡ Medir al instante</button>
+        <span class="pista">Inicio ● arriba-izquierda · Fin ● abajo-derecha</span>
+      </div>
+    </div>
+
+    <div class="tableros" id="tableros"></div>
+    <div class="podio" id="podio"></div>
+  </div>
+</section>
+
+<section id="estrategias" style="background: var(--bg2); border-block: 1px solid var(--borde);">
+  <div class="envoltura">
+    <span class="etiqueta">Las estrategias</span>
+    <h2>¿Cómo piensa cada algoritmo?</h2>
+    <p class="sub">El código es el mismo del notebook <code>laberintos.ipynb</code>.</p>
+    <div class="pestanas" role="tablist" id="pestanas"></div>
+    <div class="detalle">
+      <div class="tarjeta" id="det-texto"></div>
+      <pre><code id="det-codigo"></code></pre>
+    </div>
+  </div>
+</section>
+
+<section id="resultados">
+  <div class="envoltura">
+    <span class="etiqueta">Experimento</span>
+    <h2>Laberintos gigantescos</h2>
+    <p class="sub">Mediciones reales en Python (notebook, sección 10), desde 11×11 hasta 1001×1001. Ambos ejes están en escala logarítmica: una pendiente más empinada significa una complejidad peor. Las curvas que se cortan corresponden a algoritmos que superaron su límite de operaciones.</p>
+    <div class="barra-opciones">
+      <div class="grupo" id="g-familia">
+        <button data-v="perfecto" aria-pressed="true">Laberinto perfecto</button>
+        <button data-v="ciclos" aria-pressed="false">Con ciclos (10 %)</button>
+      </div>
+      <div class="grupo" id="g-metrica">
+        <button data-v="ms" aria-pressed="true">⏱ Tiempo</button>
+        <button data-v="kb" aria-pressed="false">💾 Memoria</button>
+        <button data-v="explorados" aria-pressed="false">🔎 Explorados</button>
+      </div>
+    </div>
+    <div class="tarjeta"><div class="grafica"><canvas id="grafica"></canvas></div></div>
+    <div class="tabla-scroll" id="tabla"></div>
+  </div>
+</section>
+
+<section id="teoria" style="background: var(--bg2); border-block: 1px solid var(--borde);">
+  <div class="envoltura">
+    <span class="etiqueta">Complejidad teórica</span>
+    <h2>¿Cuánto crecen las operaciones?</h2>
+    <p class="sub">Mueve el control para cambiar el número de casillas libres <b>V = N·M</b> y ver cuánto tardaría cada estrategia en su peor caso, a mil millones de operaciones por segundo.</p>
+    <div class="control" style="max-width: 640px"><label for="v-teo">Casillas libres V <b id="v-teo-v"></b></label><input id="v-teo" type="range" min="1" max="6" step="0.05" value="2"></div>
+    <div class="barras" id="barras"></div>
+    <div class="tabla-scroll">
+      <table>
+        <thead><tr><th>Estrategia</th><th>Tiempo</th><th>Espacio</th><th>¿Óptimo?</th><th>Idea clave</th></tr></thead>
+        <tbody id="tabla-teo"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="veredicto">
+  <div class="envoltura">
+    <div class="ganador">
+      <div class="trofeo">🏆</div>
+      <span class="etiqueta">Veredicto</span>
+      <h2>Programación dinámica gana</h2>
+      <p class="sub" style="margin-bottom: 0">Es la única estrategia que <strong>garantiza el camino más corto</strong> con tiempo y memoria <strong>lineales, O(N·M)</strong>: cada subproblema <code>dist[x][y]</code> se calcula una sola vez y se guarda en una tabla. El voraz explora menos casillas, pero entrega caminos más largos. Divide y vencerás también es óptimo, pero sus subproblemas se solapan y repite trabajo. La fuerza bruta y el backtracking no terminan en los laberintos grandes con ciclos.</p>
+      <div class="cifras" id="cifras"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="envoltura">Alejandro Bermudez · Juan David Mosquera · Santiago Restrepo — Análisis y Diseño de Algoritmos 2026-2. Notebook: <code>laberintos.ipynb</code> · Entrega 1: <code>laberinto.py</code></div>
+</footer>
+
+<!-- Código Python mostrado en "Las estrategias" (copiado de laberintos.ipynb) -->
+<script type="text/plain" id="py-fb">def fuerza_bruta(tablero, inicio, fin, limite=2_000_000):
+    """Explora TODOS los caminos simples y devuelve (camino_mas_corto, casillas_exploradas)."""
+    mejor = None
+    explorados = 0
+    camino, en_camino = [], set()
+
+    def explorar(celda):
+        nonlocal mejor, explorados
+        explorados += 1
+        if explorados > limite:
+            raise LimiteExcedido
+        camino.append(celda)
+        en_camino.add(celda)
+        if celda == fin:
+            if mejor is None or len(camino) < len(mejor):
+                mejor = camino[:]          # nueva mejor solución, pero SEGUIMOS buscando
+        else:
+            for v in vecinos(tablero, celda):
+                if v not in en_camino:     # única restricción: no repetir casillas
+                    explorar(v)
+        camino.pop()                       # deshacer para probar la siguiente rama
+        en_camino.remove(celda)
+
+    explorar(inicio)
+    return mejor, explorados</script>
+<script type="text/plain" id="py-bt">def backtracking_poda(tablero, inicio, fin, limite=5_000_000):
+    """Búsqueda recursiva con poda por cota y por dominancia. Devuelve (camino, explorados)."""
+    mejor = None
+    explorados = 0
+    camino = []
+    mejor_llegada = {inicio: 0}
+
+    def explorar(celda):
+        nonlocal mejor, explorados
+        explorados += 1
+        if explorados > limite:
+            raise LimiteExcedido
+        camino.append(celda)
+        if celda == fin:
+            mejor = camino[:]  # gracias a la poda 1, cada solución nueva es más corta que la anterior
+        else:
+            pasos = len(camino)  # pasos que tendríamos al llegar al vecino
+            for v in sorted(vecinos(tablero, celda), key=lambda c: manhattan(c, fin)):
+                if mejor is not None and pasos + manhattan(v, fin) >= len(mejor) - 1:
+                    continue                                  # poda 1: no puede mejorar
+                if mejor_llegada.get(v, float("inf")) <= pasos:
+                    continue                                  # poda 2: ya llegamos mejor
+                mejor_llegada[v] = pasos
+                explorar(v)
+        camino.pop()
+
+    explorar(inicio)
+    return mejor, explorados</script>
+<script type="text/plain" id="py-gr">def voraz(tablero, inicio, fin):
+    """Greedy best-first: siempre expande la casilla con menor manhattan(c, fin)."""
+    frontera = [(manhattan(inicio, fin), inicio)]
+    padre = {inicio: None}
+    explorados = 0
+    while frontera:
+        _, celda = heapq.heappop(frontera)   # decisión voraz: la que "parece" mejor
+        explorados += 1
+        if celda == fin:
+            return reconstruir(padre, fin), explorados
+        for v in vecinos(tablero, celda):
+            if v not in padre:
+                padre[v] = celda
+                heapq.heappush(frontera, (manhattan(v, fin), v))
+    return None, explorados</script>
+<script type="text/plain" id="py-dc">def divide_y_venceras(tablero, inicio, fin):
+    """Parte A→B en A→M y M→B (M = punto medio de un camino más corto). Devuelve (camino, explorados)."""
+    explorados = 0
+
+    def resolver(a, b, radio):
+        nonlocal explorados
+        if manhattan(a, b) <= 1:                       # caso base: misma casilla o vecinas
+            return [a] if a == b else [a, b]
+        desde_a = inundar(tablero, a, radio)           # DIVIDIR: buscar el punto medio
+        if b not in desde_a:
+            return None
+        d = desde_a[b]
+        desde_b = inundar(tablero, b, d)
+        explorados += len(desde_a) + len(desde_b)
+        mitad = d // 2
+        m = next(c for c, k in desde_a.items() if k == mitad and desde_b.get(c) == d - mitad)
+        del desde_a, desde_b                           # liberar memoria antes de recursar
+        izquierda = resolver(a, m, mitad)              # VENCER: dos subproblemas de tamaño d/2
+        derecha = resolver(m, b, d - mitad)
+        return izquierda[:-1] + derecha                # COMBINAR (M no se repite)
+
+    if tablero[inicio[0]][inicio[1]] != LIBRE:
+        return None, 0
+    return resolver(inicio, fin, float("inf")), explorados</script>
+<script type="text/plain" id="py-pd">def programacion_dinamica(tablero, inicio, fin):
+    """Tabulación por capas de dist[x][y] y reconstrucción desde la tabla. Devuelve (camino, explorados)."""
+    n, m = len(tablero), len(tablero[0])
+    dist = [[-1] * m for _ in range(n)]          # -1 = todavía no calculado
+    if tablero[inicio[0]][inicio[1]] != LIBRE:
+        return None, 0
+    dist[inicio[0]][inicio[1]] = 0
+    capa, explorados = [inicio], 0
+    while capa and dist[fin[0]][fin[1]] == -1:   # llenar la tabla capa por capa
+        siguiente = []
+        for celda in capa:
+            explorados += 1
+            for vx, vy in vecinos(tablero, celda):
+                if dist[vx][vy] == -1:
+                    dist[vx][vy] = dist[celda[0]][celda[1]] + 1
+                    siguiente.append((vx, vy))
+        capa = siguiente
+    if dist[fin[0]][fin[1]] == -1:
+        return None, explorados
+    camino = [fin]                                # reconstrucción leyendo la tabla
+    while camino[-1] != inicio:
+        x, y = camino[-1]
+        camino.append(next(v for v in vecinos(tablero, (x, y)) if dist[v[0]][v[1]] == dist[x][y] - 1))
+    return camino[::-1], explorados</script>
+
+<script>
+"use strict";
+// ======================= Datos de cada estrategia =======================
+const ALG = [
+  { id: "fb", nombre: "Fuerza bruta", py: "Fuerza bruta", icono: "🔨", color: "#ef4444",
+    tiempo: "O(4^(N·M))", espacio: "O(N·M)", optimo: true,
+    idea: "Genera <b>todos</b> los caminos simples desde el inicio y se queda con el más corto. No descarta nada: aunque ya tenga una solución, sigue probando todas las demás.",
+    pros: ["✅ Fácil de entender y siempre correcta", "❌ Exponencial: con ciclos, el número de caminos explota", "❌ Inviable incluso en 41×41 con ciclos"] },
+  { id: "bt", nombre: "Backtracking con poda", py: "Backtracking con poda", icono: "✂️", color: "#f59e0b",
+    tiempo: "O((N·M)²)", espacio: "O(N·M)", optimo: true,
+    idea: "La misma búsqueda recursiva, pero <b>antes de entrar a una rama</b> pregunta si vale la pena. <b>Poda 1 (cota):</b> si pasos + distancia Manhattan ≥ la mejor solución, la descarta. <b>Poda 2 (dominancia):</b> si ya llegó a esa casilla con menos pasos, la descarta.",
+    pros: ["✅ Pasa de exponencial a polinomial", "✅ Encuentra el óptimo", "❌ Sigue siendo cuadrática y usa recursión profunda"] },
+  { id: "gr", nombre: "Voraz (Greedy)", py: "Voraz (Greedy)", icono: "🏃", color: "#22c55e",
+    tiempo: "O(V·log V)", espacio: "O(V)", optimo: false,
+    idea: "Siempre expande la casilla de la frontera que <b>parece</b> más cercana a la meta (menor distancia Manhattan), sin importar lo que costó llegar a ella. Usa una cola de prioridad (<i>heap</i>).",
+    pros: ["✅ Rapidísimo, explora muy pocas casillas", "❌ <b>No garantiza</b> el camino más corto", "❌ Una buena decisión local puede ser una mala decisión global"] },
+  { id: "dc", nombre: "Divide y vencerás", py: "Divide y vencerás", icono: "🧩", color: "#3b82f6",
+    tiempo: "O(d·log d) típico", espacio: "O(V)", optimo: true,
+    idea: "El camino más corto A→B pasa por un <b>punto medio M</b>. Primero lo encuentra (<b>dividir</b>), luego resuelve A→M y M→B recursivamente (<b>vencer</b>) y une las dos mitades (<b>combinar</b>). Su recurrencia es T(d) = 2T(d/2) + Θ(d), es decir, Θ(d log d) por el Teorema Maestro.",
+    pros: ["✅ Óptimo y con recursión de solo log d niveles", "❌ Los subproblemas <b>se solapan</b>: vuelve a recorrer las mismas zonas", "❌ En salas abiertas llega a O(V·d)"] },
+  { id: "pd", nombre: "Programación dinámica", py: "Programación dinámica", icono: "📋", color: "#a855f7",
+    tiempo: "O(N·M)", espacio: "O(N·M)", optimo: true,
+    idea: "Llena una tabla <code>dist[x][y]</code> = pasos mínimos desde el inicio, con la recurrencia <code>dist[v] = 1 + min(dist[u])</code> sobre sus vecinos. La llena <b>por capas</b> (0, 1, 2, …), así que cada casilla se calcula <b>una sola vez</b>. Luego reconstruye el camino leyendo la tabla hacia atrás.",
+    pros: ["✅ Óptima <b>y</b> lineal en tiempo y memoria", "✅ Ningún subproblema se recalcula", "ℹ️ Usamos tabulación: con ciclos, la memoización recursiva entraría en bucle"] },
+];
+
+// ======================= Laberinto =======================
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function generar(n, ciclos, semilla) {   // mismo algoritmo que generar_laberinto() del notebook
+  const r = mulberry32(semilla), g = new Uint8Array(n * n).fill(1), pila = [0];
+  g[0] = 0;
+  while (pila.length) {
+    const k = pila[pila.length - 1], x = (k / n) | 0, y = k % n, op = [];
+    for (const [dx, dy] of [[2, 0], [0, 2], [-2, 0], [0, -2]]) {
+      const nx = x + dx, ny = y + dy;
+      if (nx >= 0 && nx < n && ny >= 0 && ny < n && g[nx * n + ny]) op.push([nx * n + ny, (x + dx / 2) * n + y + dy / 2]);
+    }
+    if (!op.length) { pila.pop(); continue; }
+    const [c, p] = op[Math.floor(r() * op.length)];
+    g[c] = g[p] = 0; pila.push(c);
+  }
+  for (let x = 0; x < n; x++) for (let y = 0; y < n; y++) if ((x + y) % 2 && g[x * n + y] && r() < ciclos) g[x * n + y] = 0;
+  return g;
+}
+
+function crearLab(n, g) {
+  const ady = [];
+  for (let k = 0; k < n * n; k++) {   // vecinos libres en el orden abajo, derecha, arriba, izquierda
+    const x = (k / n) | 0, y = k % n, v = [];
+    if (!g[k]) for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
+      const nx = x + dx, ny = y + dy;
+      if (nx >= 0 && nx < n && ny >= 0 && ny < n && !g[nx * n + ny]) v.push(nx * n + ny);
+    }
+    ady.push(v);
+  }
+  const h = (a, b) => Math.abs(((a / n) | 0) - ((b / n) | 0)) + Math.abs(a % n - b % n);
+  return { n, g, ady, h, ini: 0, fin: n * n - 1 };
+}
+
+// ======================= Algoritmos (generadores: cada `yield` = 1 casilla explorada) =======================
+function* fuerzaBruta(L, limite) {
+  const en = new Uint8Array(L.n * L.n), camino = [L.ini], idx = [0];
+  let mejor = null, ops = 1;
+  en[L.ini] = 1; yield L.ini;
+  while (camino.length) {
+    const c = camino[camino.length - 1];
+    if (c === L.fin) {
+      if (!mejor || camino.length < mejor.length) mejor = camino.slice();
+      en[c] = 0; camino.pop(); idx.pop(); continue;
+    }
+    const vs = L.ady[c]; let i = idx[idx.length - 1];
+    while (i < vs.length && en[vs[i]]) i++;
+    if (i < vs.length) {
+      idx[idx.length - 1] = i + 1;
+      const v = vs[i]; camino.push(v); idx.push(0); en[v] = 1;
+      if (++ops > limite) return { camino: null, limite: true };
+      yield v;
+    } else { en[c] = 0; camino.pop(); idx.pop(); }
+  }
+  return { camino: mejor };
+}
+
+function* backtracking(L, limite) {
+  const mejorLlegada = new Float64Array(L.n * L.n).fill(Infinity), orden = c => [...L.ady[c]].sort((a, b) => L.h(a, L.fin) - L.h(b, L.fin));
+  const camino = [L.ini], hijos = [orden(L.ini)], idx = [0];
+  let mejor = null, ops = 1;
+  mejorLlegada[L.ini] = 0; yield L.ini;
+  while (camino.length) {
+    const c = camino[camino.length - 1];
+    if (c === L.fin) { mejor = camino.slice(); camino.pop(); hijos.pop(); idx.pop(); continue; }
+    const vs = hijos[hijos.length - 1], pasos = camino.length;
+    let i = idx[idx.length - 1], v = -1;
+    for (; i < vs.length; i++) {
+      const w = vs[i];
+      if (mejor && pasos + L.h(w, L.fin) >= mejor.length - 1) continue;   // poda 1: cota
+      if (mejorLlegada[w] <= pasos) continue;                             // poda 2: dominancia
+      v = w; i++; break;
+    }
+    idx[idx.length - 1] = i;
+    if (v < 0) { camino.pop(); hijos.pop(); idx.pop(); continue; }
+    mejorLlegada[v] = pasos; camino.push(v); hijos.push(orden(v)); idx.push(0);
+    if (++ops > limite) return { camino: null, limite: true };
+    yield v;
+  }
+  return { camino: mejor };
+}
+
+function* voraz(L) {
+  const heap = [], padre = new Int32Array(L.n * L.n).fill(-2);
+  const sube = (i) => { while (i) { const p = (i - 1) >> 1; if (heap[p][0] <= heap[i][0]) break; [heap[p], heap[i]] = [heap[i], heap[p]]; i = p; } };
+  const baja = (i) => { for (;;) { let m = i; const a = 2 * i + 1, b = a + 1; if (a < heap.length && heap[a][0] < heap[m][0]) m = a; if (b < heap.length && heap[b][0] < heap[m][0]) m = b; if (m === i) return; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } };
+  heap.push([L.h(L.ini, L.fin), L.ini]); padre[L.ini] = -1;
+  while (heap.length) {
+    const [, c] = heap[0], ult = heap.pop();
+    if (heap.length) { heap[0] = ult; baja(0); }
+    yield c;
+    if (c === L.fin) { const camino = []; for (let k = c; k !== -1; k = padre[k]) camino.push(k); return { camino: camino.reverse() }; }
+    for (const v of L.ady[c]) if (padre[v] === -2) { padre[v] = c; heap.push([L.h(v, L.fin), v]); sube(heap.length - 1); }
+  }
+  return { camino: null };
+}
+
+function* inundar(L, o, radio) {
+  const dist = new Map([[o, 0]]), cola = [o];
+  for (let i = 0; i < cola.length; i++) {
+    const c = cola[i]; yield c;
+    const d = dist.get(c);
+    if (d === radio) continue;
+    for (const v of L.ady[c]) if (!dist.has(v)) { dist.set(v, d + 1); cola.push(v); }
+  }
+  return dist;
+}
+
+function* divideVenceras(L) {
+  function* resolver(a, b, radio) {
+    if (L.h(a, b) <= 1) return a === b ? [a] : [a, b];          // caso base
+    const desdeA = yield* inundar(L, a, radio);                  // dividir: buscar punto medio
+    if (!desdeA.has(b)) return null;
+    const d = desdeA.get(b), desdeB = yield* inundar(L, b, d), mitad = d >> 1;
+    let m = -1;
+    for (const [c, k] of desdeA) if (k === mitad && desdeB.get(c) === d - mitad) { m = c; break; }
+    const izq = yield* resolver(a, m, mitad), der = yield* resolver(m, b, d - mitad);   // vencer
+    return izq.slice(0, -1).concat(der);                         // combinar
+  }
+  if (L.g[L.ini]) return { camino: null };
+  return { camino: yield* resolver(L.ini, L.fin, Infinity) };
+}
+
+function* dinamica(L) {
+  const dist = new Int32Array(L.n * L.n).fill(-1);
+  dist[L.ini] = 0;
+  let capa = [L.ini];
+  while (capa.length && dist[L.fin] === -1) {                    // llenar la tabla por capas
+    const sig = [];
+    for (const c of capa) { yield c; for (const v of L.ady[c]) if (dist[v] === -1) { dist[v] = dist[c] + 1; sig.push(v); } }
+    capa = sig;
+  }
+  if (dist[L.fin] === -1) return { camino: null };
+  const camino = [L.fin];                                        // reconstruir leyendo la tabla
+  while (camino[camino.length - 1] !== L.ini) { const c = camino[camino.length - 1]; camino.push(L.ady[c].find(v => dist[v] === dist[c] - 1)); }
+  return { camino: camino.reverse() };
+}
+
+const FUNCIONES = { fb: L => fuerzaBruta(L, 3e5), bt: L => backtracking(L, 3e5), gr: voraz, dc: divideVenceras, pd: dinamica };
+
+// ======================= Arena =======================
+const $ = (s) => document.querySelector(s);
+const fmt = (x) => x.toLocaleString("es-CO");
+let lab, paneles = [], optimo = null, animando = false, pausado = false, terminados = [], semilla = 7;
+
+function velocidad() { return Math.max(1, Math.round(Math.pow(10, $("#vel").value / 100 * 3.5))); }   // 1 … ~3000 casillas/cuadro
+function actualizarEtiquetas() {
+  $("#tam-v").textContent = `${$("#tam").value}×${$("#tam").value}`;
+  $("#cic-v").textContent = `${$("#cic").value} %`;
+  $("#vel-v").textContent = fmt(velocidad());
+}
+
+function construirPaneles() {
+  const cont = $("#tableros");
+  cont.innerHTML = "";
+  paneles = ALG.map(a => {
+    const el = document.createElement("div");
+    el.className = "tablero"; el.style.setProperty("--c", a.color);
+    el.innerHTML = `<h3><span class="punto" style="background:${a.color}"></span>${a.icono} ${a.nombre}</h3><canvas></canvas>
+      <div class="metricas"><span>Explorados</span><b class="m-ops">0</b><span>Pasos</span><b class="m-pasos">—</b><span>Tiempo real</span><b class="m-ms">—</b><div class="estado"></div></div>`;
+    cont.appendChild(el);
+    const canvas = el.querySelector("canvas");
+    habilitarEdicion(canvas);
+    return { a, el, canvas, ctx: canvas.getContext("2d"), ops: el.querySelector(".m-ops"), pasos: el.querySelector(".m-pasos"), ms: el.querySelector(".m-ms"), estado: el.querySelector(".estado") };
+  });
+}
+
+function nuevoLaberinto(regenerar = true) {
+  const n = +$("#tam").value;
+  if (regenerar) semilla = (Math.random() * 1e9) | 0;
+  lab = crearLab(n, generar(n, +$("#cic").value / 100, semilla));
+  reiniciar();
+}
+
+function reiniciar() {
+  animando = false; pausado = false; terminados = [];
+  $("#b-pausa").disabled = true; $("#b-pausa").textContent = "⏸ Pausa"; $("#b-carrera").disabled = false;
+  $("#podio").innerHTML = "";
+  const res = dinamica(lab); let r; while (!(r = res.next()).done);   // óptimo de referencia
+  optimo = r.value.camino ? r.value.camino.length - 1 : null;
+  for (const p of paneles) {
+    p.visitas = new Uint16Array(lab.n * lab.n); p.cuenta = 0; p.gen = null; p.res = null;
+    p.el.classList.remove("gano");
+    p.ops.textContent = "0"; p.pasos.textContent = "—"; p.ms.textContent = "—";
+    p.estado.textContent = optimo === null ? "No hay salida" : ""; p.estado.className = "estado";
+    pintarTodo(p);
+  }
+}
+
+function medidas(p) {
+  const dpr = window.devicePixelRatio || 1, lado = Math.round(p.canvas.clientWidth * dpr) || 300;
+  if (p.canvas.width !== lado) { p.canvas.width = lado; p.canvas.height = lado; }
+  return lado / lab.n;
+}
+
+function pintarCelda(p, k, t) {
+  const x = (k / lab.n) | 0, y = k % lab.n, ctx = p.ctx, v = p.visitas[k];
+  ctx.fillStyle = lab.g[k] ? "#0a0f1d" : "#1b2540";
+  ctx.fillRect(y * t, x * t, t + 0.5, t + 0.5);
+  if (v) { ctx.globalAlpha = Math.min(1, 0.28 + 0.18 * v); ctx.fillStyle = p.a.color; ctx.fillRect(y * t, x * t, t + 0.5, t + 0.5); ctx.globalAlpha = 1; }
+}
+
+function pintarTodo(p) {
+  const t = medidas(p);
+  for (let k = 0; k < lab.n * lab.n; k++) pintarCelda(p, k, t);
+  marcas(p, t);
+  if (p.res && p.res.camino) pintarCamino(p, t);
+}
+
+function marcas(p, t) {
+  const ctx = p.ctx;
+  for (const [k, c] of [[lab.ini, "#ffffff"], [lab.fin, "#facc15"]]) {
+    ctx.fillStyle = c; ctx.beginPath();
+    ctx.arc((k % lab.n + 0.5) * t, (((k / lab.n) | 0) + 0.5) * t, Math.max(2, t * 0.42), 0, 7); ctx.fill();
+  }
+}
+
+function pintarCamino(p, t) {
+  const ctx = p.ctx, cam = p.res.camino;
+  ctx.save(); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = Math.max(1.5, t * 0.38); ctx.lineCap = ctx.lineJoin = "round";
+  ctx.shadowColor = p.a.color; ctx.shadowBlur = 8; ctx.beginPath();
+  cam.forEach((k, i) => { const X = (k % lab.n + 0.5) * t, Y = (((k / lab.n) | 0) + 0.5) * t; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+  ctx.stroke(); ctx.restore(); marcas(p, t);
+}
+
+function mostrarResultado(p) {
+  const r = p.res;
+  p.ops.textContent = fmt(p.cuenta);
+  if (r.limite) { p.estado.textContent = "❌ Superó el límite de operaciones"; p.estado.className = "estado fallo"; return; }
+  if (!r.camino) { p.estado.textContent = "Sin salida"; return; }
+  const pasos = r.camino.length - 1;
+  p.pasos.textContent = fmt(pasos);
+  if (pasos === optimo) { p.estado.textContent = "✓ Camino óptimo"; p.estado.className = "estado ok"; }
+  else { p.estado.textContent = `✗ ${pasos - optimo} pasos de más`; p.estado.className = "estado malo"; }
+}
+
+function alTerminar(p) {
+  mostrarResultado(p);
+  if (p.res.camino) pintarCamino(p, medidas(p));
+  terminados.push(p);
+  const medalla = ["🥇", "🥈", "🥉", "4º", "5º"][terminados.length - 1];
+  const chip = document.createElement("span");
+  chip.className = "chip";
+  chip.innerHTML = `${medalla} <span class="punto" style="background:${p.a.color}"></span>${p.a.nombre} · ${fmt(p.cuenta)} casillas ${p.res.limite ? "❌" : p.res.camino && p.res.camino.length - 1 !== optimo ? "✗" : "✓"}`;
+  $("#podio").appendChild(chip);
+  const primeroOptimo = terminados.find(q => !q.res.limite && q.res.camino && q.res.camino.length - 1 === optimo);
+  paneles.forEach(q => q.el.classList.toggle("gano", q === primeroOptimo));
+}
+
+function carrera() {
+  if (optimo === null) return;
+  reiniciar();
+  for (const p of paneles) p.gen = FUNCIONES[p.a.id](lab);
+  animando = true;
+  $("#b-carrera").disabled = true; $("#b-pausa").disabled = false;
+  requestAnimationFrame(cuadro);
+}
+
+function cuadro() {
+  if (!animando) return;
+  if (pausado) return requestAnimationFrame(cuadro);
+  const paso = velocidad();
+  let vivos = 0;
+  for (const p of paneles) {
+    if (p.res) continue;
+    const t = medidas(p);
+    for (let i = 0; i < paso; i++) {
+      const r = p.gen.next();
+      if (r.done) { p.res = r.value; break; }
+      p.cuenta++; p.visitas[r.value]++; pintarCelda(p, r.value, t);
+    }
+    marcas(p, t);
+    p.ops.textContent = fmt(p.cuenta);
+    if (p.res) alTerminar(p); else vivos++;
+  }
+  if (vivos) requestAnimationFrame(cuadro);
+  else { animando = false; $("#b-carrera").disabled = false; $("#b-pausa").disabled = true; }
+}
+
+function alInstante() {
+  if (optimo === null) return;
+  reiniciar();
+  for (const p of paneles) {
+    const gen = FUNCIONES[p.a.id](lab), t0 = performance.now();
+    let r, cuenta = 0;
+    while (!(r = gen.next()).done) { cuenta++; p.visitas[r.value]++; }
+    p.ms.textContent = `${(performance.now() - t0).toFixed(2)} ms`;
+    p.res = r.value; p.cuenta = cuenta;
+    pintarTodo(p);
+  }
+  [...paneles].sort((a, b) => a.cuenta - b.cuenta).forEach(alTerminar);
+}
+
+function habilitarEdicion(canvas) {
+  let pintando = null;
+  const celda = (e) => {
+    const r = canvas.getBoundingClientRect(), n = lab.n;
+    const y = Math.floor((e.clientX - r.left) / r.width * n), x = Math.floor((e.clientY - r.top) / r.height * n);
+    return x >= 0 && x < n && y >= 0 && y < n ? x * n + y : -1;
+  };
+  const aplicar = (e) => {
+    const k = celda(e);
+    if (k < 0 || k === lab.ini || k === lab.fin) return;
+    if (pintando === null) pintando = lab.g[k] ? 0 : 1;
+    if (lab.g[k] === pintando) return;
+    lab.g[k] = pintando;
+    lab = crearLab(lab.n, lab.g);
+    reiniciar();
+  };
+  canvas.addEventListener("pointerdown", e => { canvas.setPointerCapture(e.pointerId); pintando = null; aplicar(e); });
+  canvas.addEventListener("pointermove", e => { if (e.buttons) aplicar(e); });
+}
+
+// ======================= Estrategias (pestañas) =======================
+function resaltar(codigo) {
+  const esc = codigo.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return esc.replace(/("""[\s\S]*?"""|"[^"\n]*"|#.*$)|\b(def|return|if|else|elif|for|in|not|is|None|while|and|or|nonlocal|del|lambda|continue|raise|True|False)\b|\b(\d[\d_]*)\b|\b([a-z_]+)(?=\()/gm,
+    (t, s, k, n, f) => s ? `<span class="${s[0] === "#" ? "c" : "s"}">${s}</span>` : k ? `<span class="k">${k}</span>` : n ? `<span class="n">${n}</span>` : `<span class="f">${f}</span>`);
+}
+
+function mostrarEstrategia(i) {
+  const a = ALG[i];
+  document.querySelectorAll(".pestana").forEach((b, j) => b.setAttribute("aria-selected", i === j));
+  $("#det-texto").innerHTML = `<h3>${a.icono} ${a.nombre}</h3><p>${a.idea}</p>
+    <div class="complejidad"><div><small>Tiempo</small><b style="color:${a.color}">${a.tiempo}</b></div><div><small>Espacio</small><b>${a.espacio}</b></div><div><small>¿Óptimo?</small><b>${a.optimo ? "✅ Sí" : "❌ No"}</b></div></div>
+    <ul class="pros">${a.pros.map(x => `<li>${x}</li>`).join("")}</ul>`;
+  $("#det-codigo").innerHTML = resaltar(document.getElementById("py-" + a.id).textContent);
+}
+
+// ======================= Resultados (Chart.js) =======================
+let familia = "perfecto", metrica = "ms", grafica = null;
+const NOMBRE_METRICA = { ms: "Tiempo (ms)", kb: "Memoria pico (KB)", explorados: "Casillas exploradas" };
+
+const potencia10 = v => Number.isInteger(Math.log10(v)) ? fmt(v) : "";   // solo 1, 10, 100, … en los ejes log
+
+function dibujarResultados() {
+  const R = window.RESULTADOS;
+  if (!R) {
+    $("#resultados .tarjeta").innerHTML = `<p class="aviso">No se encontró <code>resultados.js</code>. Ejecuta el notebook <code>laberintos.ipynb</code> (sección 12) para generarlo.</p>`;
+    return;
+  }
+  const filas = R.familias[familia];
+  const datasets = ALG.map(a => ({
+    label: a.nombre, borderColor: a.color, backgroundColor: a.color, borderWidth: 2.5, pointRadius: 4, tension: 0.15,
+    data: filas[a.py].filter(d => d.estado === "ok" && d[metrica] != null).map(d => ({ x: d.libres, y: Math.max(d[metrica], 1e-3) })),
+  }));
+  if (window.Chart) {
+    if (grafica) grafica.destroy();
+    Chart.defaults.color = "#8b97b3"; Chart.defaults.font.family = "Inter";
+    grafica = new Chart($("#grafica"), {
+      type: "line", data: { datasets },
+      options: {
+        maintainAspectRatio: false, interaction: { mode: "nearest", intersect: false },
+        scales: {
+          x: { type: "logarithmic", ticks: { callback: potencia10 }, title: { display: true, text: "Casillas libres (V) — escala log" }, grid: { color: "#1f2b47" } },
+          y: { type: "logarithmic", ticks: { callback: potencia10 }, title: { display: true, text: NOMBRE_METRICA[metrica] + " — escala log" }, grid: { color: "#1f2b47" } },
+        },
+        plugins: { tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(+c.parsed.y.toPrecision(4))}` } } },
+      },
+    });
+  } else {
+    $("#resultados .grafica").innerHTML = `<p class="aviso">No se pudo cargar Chart.js (¿sin conexión?). La tabla de abajo tiene todos los datos.</p>`;
+  }
+  // Tabla: una fila por tamaño
+  const celda = (d) => {
+    if (d.estado === "limite") return `<td class="fallo">❌ límite</td>`;
+    if (d.estado === "omitido") return `<td style="color:var(--suave)">—</td>`;
+    const v = d[metrica];
+    const txt = v == null ? "n/m" : metrica === "explorados" ? fmt(v) : fmt(+v.toPrecision(3));
+    return `<td class="mono">${txt}${d.optimo ? "" : ` <span class="malo" title="${d.pasos} pasos, no óptimo">✗</span>`}</td>`;
+  };
+  $("#tabla").innerHTML = `<table><thead><tr><th>Laberinto</th><th>Casillas libres</th>${ALG.map(a => `<th style="color:${a.color}">${a.nombre}</th>`).join("")}</tr></thead><tbody>${
+    R.tamanos.map((n, i) => `<tr><td>${n}×${n}</td><td class="mono">${fmt(filas["Programación dinámica"][i].libres)}</td>${ALG.map(a => celda(filas[a.py][i])).join("")}</tr>`).join("")
+  }</tbody></table><p style="color:var(--suave);font-size:.8rem">${NOMBRE_METRICA[metrica]} · ✗ = camino no óptimo · ❌ = superó el límite de operaciones · — = no se intentó (ya había fallado en un tamaño menor) · n/m = no medido (la memoria de los algoritmos recursivos solo se mide hasta 81×81)</p>`;
+}
+
+function grupo(sel, alCambiar) {
+  $(sel).addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    $(sel).querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    alCambiar(b.dataset.v); dibujarResultados();
+  });
+}
+
+// ======================= Complejidad teórica =======================
+const TEO = [   // log10(operaciones) en función de V
+  { id: "fb", f: V => V * Math.log10(4), txt: "4^V" },
+  { id: "bt", f: V => 2 * Math.log10(V), txt: "V²" },
+  { id: "gr", f: V => Math.log10(V * Math.log2(V)), txt: "V·log V" },
+  { id: "dc", f: V => Math.log10(V * Math.log2(V)), txt: "d·log d (d ≤ V)" },
+  { id: "pd", f: V => Math.log10(V), txt: "V" },
+];
+
+function duracion(log10ops) {
+  const s = log10ops - 9;   // 10^9 operaciones por segundo
+  if (s > 9) return `≈ 10^${Math.round(s - 7.5).toLocaleString("es-CO")} años 💀`;
+  const seg = Math.pow(10, s);
+  if (seg < 1e-3) return `${(seg * 1e6).toFixed(seg < 1e-6 ? 3 : 1)} µs`;
+  if (seg < 1) return `${(seg * 1e3).toFixed(1)} ms`;
+  if (seg < 3600) return `${seg.toFixed(1)} s`;
+  if (seg < 86400 * 365) return `${(seg / 3600).toFixed(1)} h`;
+  return `${(seg / 31557600).toFixed(1)} años`;
+}
+
+function dibujarTeoria() {
+  const V = Math.round(Math.pow(10, +$("#v-teo").value));
+  $("#v-teo-v").textContent = `${fmt(V)} ${V >= 1e6 ? "(1001×1001 ≈ 500 000)" : ""}`;
+  $("#barras").innerHTML = TEO.map(t => {
+    const a = ALG.find(x => x.id === t.id), L = t.f(Math.max(V, 2));
+    return `<div class="fila-barra" style="--c:${a.color}"><span>${a.icono} ${a.nombre}</span>
+      <div class="pista-barra"><div class="relleno" style="width:${Math.min(100, L / 15 * 100)}%"></div></div>
+      <span class="mono">O(${t.txt}) → ${duracion(L)}</span></div>`;
+  }).join("");
+}
+
+// ======================= Veredicto (cifras desde resultados.js) =======================
+function dibujarCifras() {
+  const R = window.RESULTADOS, cont = $("#cifras");
+  if (!R) { cont.innerHTML = ""; return; }
+  const ultimo = (alg, fam) => [...R.familias[fam][alg]].reverse().find(d => d.estado === "ok");
+  const pd = ultimo("Programación dinámica", "perfecto"), dc = ultimo("Divide y vencerás", "perfecto");
+  const grC = ultimo("Voraz (Greedy)", "ciclos"), pdC = ultimo("Programación dinámica", "ciclos");
+  const fbMax = ultimo("Fuerza bruta", "ciclos");
+  const cifras = [
+    [`${fmt(pd.libres)}`, `casillas libres resueltas de forma óptima en ${fmt(Math.round(pd.ms))} ms (${pd.n}×${pd.n})`],
+    [dc && dc.n === pd.n ? `${(dc.ms / pd.ms).toFixed(1)}×` : "—", `más rápida que divide y vencerás en el laberinto más grande`],
+    [grC && !grC.optimo ? `+${fmt(grC.pasos - pdC.pasos)}` : "0", `pasos de más del voraz en ${grC ? grC.n + "×" + grC.n : ""} con ciclos`],
+    [fbMax ? `${fbMax.n}×${fbMax.n}` : "—", `es el laberinto con ciclos más grande que alcanzó a resolver la fuerza bruta`],
+  ];
+  cont.innerHTML = cifras.map(([b, s]) => `<div class="cifra"><b>${b}</b><span>${s}</span></div>`).join("");
+}
+
+// ======================= Fondo animado del hero =======================
+function fondo() {
+  const c = $("#fondo"), ctx = c.getContext("2d"), n = 41, g = generar(n, 0.05, 99), L = crearLab(n, g);
+  const gen = dinamica(L), orden = [];
+  let r; while (!(r = gen.next()).done) orden.push(r.value);
+  let i = 0;
+  const dibujar = () => {
+    const w = c.width = c.clientWidth, h = c.height = c.clientHeight, t = Math.max(w, h) / n;
+    ctx.fillStyle = "#1b2540";
+    for (let k = 0; k < n * n; k++) if (!g[k]) ctx.fillRect((k % n) * t, ((k / n) | 0) * t, t - 1, t - 1);
+  };
+  dibujar(); addEventListener("resize", dibujar);
+  const t = () => Math.max(c.width, c.height) / n;
+  const paso = () => {
+    for (let j = 0; j < 4 && i < orden.length; j++, i++) {
+      const k = orden[i]; ctx.fillStyle = ALG[(i / 60 | 0) % 5].color;
+      ctx.fillRect((k % n) * t(), ((k / n) | 0) * t(), t() - 1, t() - 1);
+    }
+    if (i < orden.length) requestAnimationFrame(paso);
+  };
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) requestAnimationFrame(paso);
+}
+
+// ======================= Inicio =======================
+$("#chips-alg").innerHTML = ALG.map(a => `<span class="chip"><span class="punto" style="background:${a.color}"></span>${a.icono} ${a.nombre}</span>`).join("");
+$("#pestanas").innerHTML = ALG.map((a, i) => `<button class="pestana" role="tab" style="--c:${a.color}" data-i="${i}"><span class="punto" style="background:${a.color}"></span>${a.nombre}</button>`).join("");
+$("#pestanas").addEventListener("click", e => { const b = e.target.closest(".pestana"); if (b) mostrarEstrategia(+b.dataset.i); });
+$("#tabla-teo").innerHTML = ALG.map(a => `<tr><td><span class="punto" style="background:${a.color};display:inline-block;margin-right:8px"></span>${a.nombre}</td><td class="mono">${a.tiempo}</td><td class="mono">${a.espacio}</td><td>${a.optimo ? "✅" : "❌"}</td><td style="text-align:left;white-space:normal">${a.pros[0].replace(/^✅ /, "")}</td></tr>`).join("");
+
+for (const id of ["#tam", "#cic"]) $(id).addEventListener("change", () => nuevoLaberinto(false));
+for (const id of ["#tam", "#cic", "#vel"]) $(id).addEventListener("input", actualizarEtiquetas);
+$("#v-teo").addEventListener("input", dibujarTeoria);
+$("#b-nuevo").addEventListener("click", () => nuevoLaberinto(true));
+$("#b-carrera").addEventListener("click", carrera);
+$("#b-instante").addEventListener("click", alInstante);
+$("#b-pausa").addEventListener("click", () => { pausado = !pausado; $("#b-pausa").textContent = pausado ? "▶ Continuar" : "⏸ Pausa"; });
+addEventListener("resize", () => paneles.forEach(pintarTodo));
+grupo("#g-familia", v => familia = v);
+grupo("#g-metrica", v => metrica = v);
+
+actualizarEtiquetas();
+construirPaneles();
+nuevoLaberinto(false);
+mostrarEstrategia(4);
+dibujarResultados();
+dibujarTeoria();
+dibujarCifras();
+fondo();
+</script>
+</body>
+</html>

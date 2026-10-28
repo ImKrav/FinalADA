@@ -98,3 +98,26 @@ Para ejecutar el programa directamente desde la terminal:
 ```bash
 python laberinto.py
 ```
+---
+
+## 7. Entrega 2 — Cinco estrategias de diseño
+
+El notebook [`laberintos.ipynb`](laberintos.ipynb) amplía el problema a **encontrar el camino más corto** y lo resuelve con cinco estrategias:
+
+| Estrategia | Tiempo | Espacio | ¿Óptimo? |
+|---|---|---|---|
+| Fuerza bruta (todos los caminos) | $O(4^{N \times M})$ | $O(N \times M)$ | ✅ |
+| Backtracking con poda (cota + dominancia) | $O((N \times M)^2)$ | $O(N \times M)$ | ✅ |
+| Voraz (greedy best-first) | $O(NM \log NM)$ | $O(N \times M)$ | ❌ |
+| Divide y vencerás (punto medio) | $O(d \log d)$ típico | $O(N \times M)$ | ✅ |
+| **Programación dinámica (tabulación)** | $\mathbf{O(N \times M)}$ | $\mathbf{O(N \times M)}$ | ✅ |
+
+Incluye verificación automática de corrección, los casos de la Entrega 1 y un experimento con laberintos de hasta **1001 × 1001**.
+Los resultados se exportan a `resultados.js` y se presentan en [`index.html`](index.html), una página interactiva con una carrera en vivo entre los 5 algoritmos.
+
+```bash
+pip install notebook matplotlib numpy
+jupyter notebook laberintos.ipynb      # ejecutar todas las celdas (~5 min) regenera resultados.js
+```
+
+Para la presentación basta con abrir `index.html` en el navegador (Chart.js y las fuentes se cargan desde internet).
