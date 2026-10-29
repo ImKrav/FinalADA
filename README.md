@@ -113,12 +113,12 @@ El notebook [`laberintos.ipynb`](laberintos.ipynb) amplía el problema a **encon
 | **Programación dinámica (tabulación)** | $\mathbf{O(N \times M)}$ | $\mathbf{O(N \times M)}$ | ✅ |
 
 Incluye verificación automática de corrección, los casos de la Entrega 1 y un experimento con laberintos de hasta **2001 × 2001** (unos 2 millones de casillas libres).
-Los resultados se escriben dentro de [`index.html`](index.html), una página interactiva con una carrera en vivo entre los 5 algoritmos, un laboratorio paso a paso que muestra la lógica de cada uno (pseudocódigo, decisiones y estado interno) y gráficas comparativas en escala lineal y logarítmica.
+Los resultados se exportan a `resultados.js` y se presentan en [`index.html`](index.html), una página interactiva con una carrera en vivo entre los 5 algoritmos, un laboratorio paso a paso que muestra la lógica de cada uno (pseudocódigo, decisiones y estado interno) y gráficas comparativas en escala lineal y logarítmica.
 
 ```bash
 pip install notebook matplotlib numpy
-jupyter notebook laberintos.ipynb      # ejecutar todas las celdas (~15 min) actualiza los datos de index.html
+jupyter notebook laberintos.ipynb      # ejecutar todas las celdas (~15 min) regenera resultados.js
 ```
 
-Para la presentación basta con abrir `index.html` en el navegador: es un solo archivo con los datos y las gráficas incluidos, y funciona sin internet (solo las fuentes tipográficas se descargan si hay conexión).
+Para la presentación basta con abrir `index.html` en el navegador (Chart.js y las fuentes se cargan desde internet).
 Atajos útiles durante la exposición: `P` modo exposición (una sección por pantalla, con cronómetro), `N` guion del expositor, `V` vista del presentador en otra ventana, `L` puntero láser, `+`/`−` tamaño del texto y `?` lista completa de atajos.
