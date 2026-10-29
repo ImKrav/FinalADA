@@ -112,8 +112,8 @@ El notebook [`laberintos.ipynb`](laberintos.ipynb) amplía el problema a **encon
 | Divide y vencerás (punto medio) | $O(d \log d)$ típico | $O(N \times M)$ | ✅ |
 | **Programación dinámica (tabulación)** | $\mathbf{O(N \times M)}$ | $\mathbf{O(N \times M)}$ | ✅ |
 
-Incluye verificación automática de corrección, los casos de la Entrega 1 y un experimento con laberintos de hasta **1001 × 1001**.
-Los resultados se exportan a `resultados.js` y se presentan en [`index.html`](index.html), una página interactiva con una carrera en vivo entre los 5 algoritmos.
+Incluye verificación automática de corrección, los casos de la Entrega 1 y un experimento con laberintos de hasta **2001 × 2001** (unos 2 millones de casillas libres).
+Los resultados se exportan a `resultados.js` y se presentan en [`index.html`](index.html), una página interactiva con una carrera en vivo entre los 5 algoritmos, un laboratorio paso a paso que muestra la lógica de cada uno (pseudocódigo, decisiones y estado interno) y gráficas comparativas en escala lineal y logarítmica.
 
 ```bash
 pip install notebook matplotlib numpy
