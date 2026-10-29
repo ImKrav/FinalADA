@@ -121,3 +121,4 @@ jupyter notebook laberintos.ipynb      # ejecutar todas las celdas (~5 min) rege
 ```
 
 Para la presentación basta con abrir `index.html` en el navegador (Chart.js y las fuentes se cargan desde internet).
+Atajos útiles durante la exposición: `P` modo exposición (una sección por pantalla, con cronómetro), `N` guion del expositor, `V` vista del presentador en otra ventana, `L` puntero láser, `+`/`−` tamaño del texto y `?` lista completa de atajos.
