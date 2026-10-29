@@ -118,17 +118,18 @@ pruebas = [
     ("Rectangular extra ancho (7x21)", rect_extra_ancho, 0, 0, 6, 20)
 ]
 
-for nombre, laberinto, x1, y1, x2, y2 in pruebas:
-    print("Probando:", nombre)
-    camino = []
-    copia = [fila[:] for fila in laberinto]
+if __name__ == "__main__":
+    for nombre, laberinto, x1, y1, x2, y2 in pruebas:
+        print("Probando:", nombre)
+        camino = []
+        copia = [fila[:] for fila in laberinto]
 
-    t_inicio = time.time()
-    resolver_laberinto(copia, x1, y1, x2, y2, camino)
-    t_fin = time.time()
+        t_inicio = time.time()
+        resolver_laberinto(copia, x1, y1, x2, y2, camino)
+        t_fin = time.time()
 
-    tiempo = t_fin - t_inicio
-    print("Tiempo:", f"{tiempo:.6f}", "segundos")
-    print("Pasos:", len(camino))
-    print("Laberinto resuelto:")
-    imprimir_laberinto(copia)
+        tiempo = t_fin - t_inicio
+        print("Tiempo:", f"{tiempo:.6f}", "segundos")
+        print("Pasos:", len(camino))
+        print("Laberinto resuelto:")
+        imprimir_laberinto(copia)
