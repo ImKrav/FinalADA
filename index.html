@@ -116,6 +116,7 @@ input[type=range] { width: 100%; accent-color: var(--tinta); }
 .indice button:hover { background: rgba(29, 28, 26, .04); }
 .indice button[aria-selected=true] { color: var(--tinta); background: color-mix(in srgb, var(--c) 13%, transparent); }
 .detalle h3 { font-size: 1.8rem; margin-bottom: .5rem; }
+.conocido { font-size: .92rem; padding: .6rem .8rem; border-radius: 12px; background: color-mix(in srgb, var(--c) 10%, transparent); }
 .analogia { font-family: var(--serif); font-style: italic; font-size: 1.1rem; border-left: 3px solid var(--c); padding-left: 1rem; margin: 1rem 0; }
 .ficha { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 16px; background: var(--papel-claro); padding: .2rem 1rem; margin: 1rem 0; }
 .ficha div { padding: .6rem .8rem .6rem 0; }
@@ -590,65 +591,80 @@ dialog:modal { position: fixed; }
 
 <!-- Código Python mostrado en "Las estrategias" (copiado de laberintos.ipynb) -->
 <script type="text/plain" id="py-fb">def fuerza_bruta(tablero, inicio, fin, limite=2_000_000):
-    """Explora TODOS los caminos simples y devuelve (camino_mas_corto, casillas_exploradas)."""
-    mejor = None
-    explorados = 0
-    camino, en_camino = [], set()
+    """Prueba TODOS los caminos y devuelve (camino_mas_corto, casillas_exploradas)."""
+    datos = {"mejor": None, "explorados": 0}   # lo que se recuerda entre llamadas
+    visitado = []
+    for fila in tablero:
+        visitado.append([False] * len(fila))
+    explorar_fb(tablero, inicio, fin, [], visitado, datos, limite)
+    return datos["mejor"], datos["explorados"]
 
-    def explorar(celda):
-        nonlocal mejor, explorados
-        explorados += 1
-        if explorados > limite:
-            raise LimiteExcedido
-        camino.append(celda)
-        en_camino.add(celda)
-        if celda == fin:
-            if mejor is None or len(camino) < len(mejor):
-                mejor = camino[:]          # nueva mejor solución, pero SEGUIMOS buscando
-        else:
-            for v in vecinos(tablero, celda):
-                if v not in en_camino:     # única restricción: no repetir casillas
-                    explorar(v)
-        camino.pop()                       # deshacer para probar la siguiente rama
-        en_camino.remove(celda)
 
-    explorar(inicio)
-    return mejor, explorados</script>
+def explorar_fb(tablero, celda, fin, camino, visitado, datos, limite):
+    datos["explorados"] += 1
+    if datos["explorados"] > limite:
+        raise LimiteExcedido
+    x, y = celda
+    camino.append(celda)                      # avanzar a la casilla
+    visitado[x][y] = True
+    if celda == fin:
+        if datos["mejor"] is None or len(camino) < len(datos["mejor"]):
+            datos["mejor"] = list(camino)     # nueva mejor solución, pero SIGUE buscando
+    else:
+        for v in vecinos(tablero, celda):
+            if not visitado[v[0]][v[1]]:      # única regla: no repetir casillas
+                explorar_fb(tablero, v, fin, camino, visitado, datos, limite)
+    camino.pop()                              # retroceder para probar otra rama
+    visitado[x][y] = False</script>
 <script type="text/plain" id="py-bt">def backtracking_poda(tablero, inicio, fin, limite=5_000_000):
     """Búsqueda recursiva con poda por cota y por dominancia. Devuelve (camino, explorados)."""
-    mejor = None
-    explorados = 0
-    camino = []
-    mejor_llegada = {inicio: 0}
+    datos = {"mejor": None, "explorados": 0}
+    llegada = []                              # llegada[x][y] = menos pasos con que llegamos ahí (-1 = nunca)
+    for fila in tablero:
+        llegada.append([-1] * len(fila))
+    llegada[inicio[0]][inicio[1]] = 0
+    explorar_bt(tablero, inicio, fin, [], llegada, datos, limite)
+    return datos["mejor"], datos["explorados"]
 
-    def explorar(celda):
-        nonlocal mejor, explorados
-        explorados += 1
-        if explorados > limite:
-            raise LimiteExcedido
-        camino.append(celda)
-        if celda == fin:
-            mejor = camino[:]  # gracias a la poda 1, cada solución nueva es más corta que la anterior
-        else:
-            pasos = len(camino)  # pasos que tendríamos al llegar al vecino
-            for v in sorted(vecinos(tablero, celda), key=lambda c: manhattan(c, fin)):
-                if mejor is not None and pasos + manhattan(v, fin) >= len(mejor) - 1:
-                    continue                                  # poda 1: no puede mejorar
-                if mejor_llegada.get(v, float("inf")) <= pasos:
-                    continue                                  # poda 2: ya llegamos mejor
-                mejor_llegada[v] = pasos
-                explorar(v)
-        camino.pop()
 
-    explorar(inicio)
-    return mejor, explorados</script>
+def explorar_bt(tablero, celda, fin, camino, llegada, datos, limite):
+    datos["explorados"] += 1
+    if datos["explorados"] > limite:
+        raise LimiteExcedido
+    camino.append(celda)
+    if celda == fin:
+        datos["mejor"] = list(camino)         # gracias a la poda 1, siempre es más corta que la anterior
+    else:
+        pasos = len(camino)                   # pasos que tendríamos al llegar a un vecino
+        for v in ordenar_por_cercania(vecinos(tablero, celda), fin):
+            vx, vy = v
+            mejor = datos["mejor"]
+            if mejor is not None and pasos + manhattan(v, fin) >= len(mejor) - 1:
+                continue                      # poda 1 (cota): ni en línea recta mejoraría
+            if llegada[vx][vy] != -1 and llegada[vx][vy] <= pasos:
+                continue                      # poda 2 (dominancia): ya llegamos ahí con menos pasos
+            llegada[vx][vy] = pasos
+            explorar_bt(tablero, v, fin, camino, llegada, datos, limite)
+    camino.pop()                              # retroceder
+
+
+def ordenar_por_cercania(casillas, fin):
+    """Ordena las casillas de la más cercana a la más lejana de `fin` (son 4 como mucho)."""
+    ordenadas = []
+    for c in casillas:
+        i = 0
+        while i < len(ordenadas) and manhattan(ordenadas[i], fin) <= manhattan(c, fin):
+            i += 1
+        ordenadas.insert(i, c)
+    return ordenadas</script>
 <script type="text/plain" id="py-gr">def voraz(tablero, inicio, fin):
-    """Greedy best-first: siempre expande la casilla con menor manhattan(c, fin)."""
-    frontera = [(manhattan(inicio, fin), inicio)]
-    padre = {inicio: None}
+    """Greedy best-first: siempre sigue por la casilla que parece más cercana a la meta."""
+    frontera = []                             # montículo (heap) de pares (h, casilla)
+    heapq.heappush(frontera, (manhattan(inicio, fin), inicio))
+    padre = {inicio: None}                    # padre[c] = casilla desde la que llegamos a c
     explorados = 0
-    while frontera:
-        _, celda = heapq.heappop(frontera)   # decisión voraz: la que "parece" mejor
+    while len(frontera) > 0:
+        h, celda = heapq.heappop(frontera)    # decisión voraz: la de menor h
         explorados += 1
         if celda == fin:
             return reconstruir(padre, fin), explorados
@@ -656,55 +672,100 @@ dialog:modal { position: fixed; }
             if v not in padre:
                 padre[v] = celda
                 heapq.heappush(frontera, (manhattan(v, fin), v))
-    return None, explorados</script>
-<script type="text/plain" id="py-dc">def divide_y_venceras(tablero, inicio, fin):
+    return None, explorados
+
+
+def reconstruir(padre, fin):
+    """Sigue los punteros `padre` desde el fin hasta el inicio y voltea la lista."""
+    camino = []
+    celda = fin
+    while celda is not None:
+        camino.append(celda)
+        celda = padre[celda]
+    camino.reverse()
+    return camino</script>
+<script type="text/plain" id="py-dc">def inundar(tablero, origen, radio):
+    """Distancia desde `origen` a cada casilla alcanzable sin pasar de `radio` (None = sin límite)."""
+    dist = {origen: 0}
+    cola = [origen]
+    i = 0
+    while i < len(cola):                      # recorre la cola en orden de llegada
+        celda = cola[i]
+        i += 1
+        if radio is not None and dist[celda] == radio:
+            continue
+        for v in vecinos(tablero, celda):
+            if v not in dist:
+                dist[v] = dist[celda] + 1
+                cola.append(v)
+    return dist
+
+
+def divide_y_venceras(tablero, inicio, fin):
     """Parte A→B en A→M y M→B (M = punto medio de un camino más corto). Devuelve (camino, explorados)."""
-    explorados = 0
-
-    def resolver(a, b, radio):
-        nonlocal explorados
-        if manhattan(a, b) <= 1:                       # caso base: misma casilla o vecinas
-            return [a] if a == b else [a, b]
-        desde_a = inundar(tablero, a, radio)           # DIVIDIR: buscar el punto medio
-        if b not in desde_a:
-            return None
-        d = desde_a[b]
-        desde_b = inundar(tablero, b, d)
-        explorados += len(desde_a) + len(desde_b)
-        mitad = d // 2
-        m = next(c for c, k in desde_a.items() if k == mitad and desde_b.get(c) == d - mitad)
-        del desde_a, desde_b                           # liberar memoria antes de recursar
-        izquierda = resolver(a, m, mitad)              # VENCER: dos subproblemas de tamaño d/2
-        derecha = resolver(m, b, d - mitad)
-        return izquierda[:-1] + derecha                # COMBINAR (M no se repite)
-
     if tablero[inicio[0]][inicio[1]] != LIBRE:
         return None, 0
-    return resolver(inicio, fin, float("inf")), explorados</script>
+    datos = {"explorados": 0}
+    camino = resolver_dv(tablero, inicio, fin, None, datos)
+    return camino, datos["explorados"]
+
+
+def resolver_dv(tablero, a, b, radio, datos):
+    if a == b:                                # caso base: misma casilla
+        return [a]
+    if manhattan(a, b) == 1:                  # caso base: casillas vecinas
+        return [a, b]
+    desde_a = inundar(tablero, a, radio)      # DIVIDIR: distancias desde A ...
+    if b not in desde_a:
+        return None
+    d = desde_a[b]
+    desde_b = inundar(tablero, b, d)          # ... y desde B
+    datos["explorados"] += len(desde_a) + len(desde_b)
+    mitad = d // 2
+    m = None
+    for celda in desde_a:                     # M: a `mitad` pasos de A y a `d - mitad` de B
+        if desde_a[celda] == mitad and celda in desde_b and desde_b[celda] == d - mitad:
+            m = celda
+            break
+    desde_a = None                            # ya no se necesitan: libera memoria antes de recursar
+    desde_b = None
+    izquierda = resolver_dv(tablero, a, m, mitad, datos)       # VENCER: A → M
+    derecha = resolver_dv(tablero, m, b, d - mitad, datos)     #         M → B
+    izquierda.pop()                           # COMBINAR: quita M para no repetirla
+    return izquierda + derecha</script>
 <script type="text/plain" id="py-pd">def programacion_dinamica(tablero, inicio, fin):
-    """Tabulación por capas de dist[x][y] y reconstrucción desde la tabla. Devuelve (camino, explorados)."""
-    n, m = len(tablero), len(tablero[0])
-    dist = [[-1] * m for _ in range(n)]          # -1 = todavía no calculado
+    """Tabla dist[x][y] llenada por capas y camino reconstruido desde la tabla. Devuelve (camino, explorados)."""
     if tablero[inicio[0]][inicio[1]] != LIBRE:
         return None, 0
+    dist = []                                 # dist[x][y] = pasos mínimos desde el inicio (-1 = sin calcular)
+    for fila in tablero:
+        dist.append([-1] * len(fila))
     dist[inicio[0]][inicio[1]] = 0
-    capa, explorados = [inicio], 0
-    while capa and dist[fin[0]][fin[1]] == -1:   # llenar la tabla capa por capa
+    capa = [inicio]
+    explorados = 0
+    while len(capa) > 0 and dist[fin[0]][fin[1]] == -1:     # llenar la tabla capa por capa
         siguiente = []
         for celda in capa:
             explorados += 1
+            x, y = celda
             for vx, vy in vecinos(tablero, celda):
                 if dist[vx][vy] == -1:
-                    dist[vx][vy] = dist[celda[0]][celda[1]] + 1
+                    dist[vx][vy] = dist[x][y] + 1
                     siguiente.append((vx, vy))
         capa = siguiente
     if dist[fin[0]][fin[1]] == -1:
         return None, explorados
-    camino = [fin]                                # reconstrucción leyendo la tabla
-    while camino[-1] != inicio:
-        x, y = camino[-1]
-        camino.append(next(v for v in vecinos(tablero, (x, y)) if dist[v[0]][v[1]] == dist[x][y] - 1))
-    return camino[::-1], explorados</script>
+    camino = [fin]                            # reconstrucción: desde la meta, ir al vecino con un paso menos
+    celda = fin
+    while celda != inicio:
+        x, y = celda
+        for v in vecinos(tablero, celda):
+            if dist[v[0]][v[1]] == dist[x][y] - 1:
+                celda = v
+                break
+        camino.append(celda)
+    camino.reverse()
+    return camino, explorados</script>
 
 <script>
 "use strict";
@@ -712,26 +773,31 @@ dialog:modal { position: fixed; }
 const ALG = [
   { id: "fb", corto: "FB", nombre: "Fuerza bruta", py: "Fuerza bruta", color: "#b5442e",
     tiempo: "O(4^(N·M))", espacio: "O(N·M)", optimo: true,
+    conocido: "Búsqueda exhaustiva (<i>exhaustive search</i>): enumera todos los caminos simples con una búsqueda en profundidad (DFS).",
     idea: "Genera <b>todos</b> los caminos simples desde el inicio y se queda con el más corto. No descarta nada: aunque ya tenga una solución, sigue probando todas las demás.",
     analogia: "Como recorrer a pie cada ruta posible de la ciudad antes de decidir cuál era la más corta.",
     balance: [["mas", "Fácil de entender y siempre correcta."], ["menos", "Exponencial: con ciclos, el número de caminos explota."], ["menos", "No termina ni en 41 × 41 con ciclos."]] },
   { id: "bt", corto: "BT", nombre: "Backtracking con poda", py: "Backtracking con poda", color: "#b07d12",
     tiempo: "O((N·M)²)", espacio: "O(N·M)", optimo: true,
+    conocido: "Ramificación y poda (<i>branch and bound</i>) sobre una búsqueda en profundidad, con poda por dominancia.",
     idea: "La misma búsqueda recursiva, pero <b>antes de entrar a una rama</b> pregunta si vale la pena. <b>Poda por cota:</b> si pasos + distancia Manhattan ≥ la mejor solución, la descarta. <b>Poda por dominancia:</b> si ya llegó a esa casilla con menos pasos, también la descarta.",
     analogia: "Un explorador que abandona un pasillo en cuanto sabe que ya llegó a ese punto por un camino más corto.",
     balance: [["mas", "Pasa de exponencial a polinomial."], ["mas", "Encuentra el óptimo."], ["menos", "Sigue siendo cuadrática y usa recursión profunda."]] },
   { id: "gr", corto: "VZ", nombre: "Voraz", py: "Voraz (Greedy)", color: "#4f7a3a",
     tiempo: "O(V·log V)", espacio: "O(V)", optimo: false,
+    conocido: "Búsqueda voraz «primero el mejor» (<i>Greedy Best-First Search</i>) con la distancia Manhattan como heurística. <b>No es Dijkstra:</b> Dijkstra también es voraz, pero elige por la distancia ya recorrida y por eso sí es óptimo (aquí equivale a la PD). A* combina las dos ideas.",
     idea: "Siempre expande la casilla de la frontera que <b>parece</b> más cercana a la meta (menor distancia Manhattan), sin importar lo que costó llegar a ella. Usa una cola de prioridad (<i>heap</i>).",
     analogia: "Caminar siempre hacia donde se ve la salida, aunque al final haya un muro y toque devolverse.",
     balance: [["mas", "Rapidísimo: explora muy pocas casillas."], ["menos", "<b>No garantiza</b> el camino más corto."], ["menos", "Una buena decisión local puede ser una mala decisión global."]] },
   { id: "dc", corto: "DV", nombre: "Divide y vencerás", py: "Divide y vencerás", color: "#2f5d8a",
     tiempo: "O(d·log d) típico", espacio: "O(V)", optimo: true,
+    conocido: "Recursión por punto medio: la idea de <b>Hirschberg</b> (1975) aplicada a caminos, como en el <i>Divide-and-Conquer Frontier Search</i> de Korf (1999). Es el mismo esquema del teorema de Savitch.",
     idea: "El camino más corto A→B pasa por un <b>punto medio M</b>. Primero lo encuentra (<b>dividir</b>), luego resuelve A→M y M→B recursivamente (<b>vencer</b>) y une las dos mitades (<b>combinar</b>). La recurrencia T(d) = 2T(d/2) + Θ(d) da Θ(d log d) por el Teorema Maestro.",
     analogia: "Planear un viaje largo eligiendo primero la ciudad intermedia y luego cada mitad por separado.",
     balance: [["mas", "Óptimo, con recursión de solo log d niveles."], ["menos", "Los subproblemas <b>se solapan</b>: vuelve a recorrer las mismas zonas."], ["menos", "En salas abiertas llega a O(V·d)."]] },
   { id: "pd", corto: "PD", nombre: "Programación dinámica", py: "Programación dinámica", color: "#7a3b69",
     tiempo: "O(N·M)", espacio: "O(N·M)", optimo: true,
+    conocido: "Búsqueda en anchura (<b>BFS</b>) por capas, conocida en laberintos como <b>algoritmo de Lee</b> (1961). Con pasos de costo 1 hace exactamente lo mismo que <b>Dijkstra</b>.",
     idea: "Llena una tabla <code>dist[x][y]</code> con los pasos mínimos desde el inicio, usando la recurrencia <code>dist[v] = 1 + min(dist[u])</code> sobre sus vecinos. La llena <b>por capas</b> (0, 1, 2, …), así que cada casilla se calcula <b>una sola vez</b>. Al final reconstruye el camino leyendo la tabla hacia atrás.",
     analogia: "Una piedra que cae en un estanque: cada onda es una capa de la tabla y llega a todas las casillas a la vez.",
     balance: [["mas", "Óptima <b>y</b> lineal en tiempo y memoria."], ["mas", "Ningún subproblema se recalcula."], ["info", "Usamos tabulación: con ciclos, la memoización recursiva entraría en un bucle."]] },
@@ -1128,7 +1194,8 @@ function mostrarEstrategia(i) {
   document.querySelectorAll("#indice button").forEach((b, j) => b.setAttribute("aria-selected", i === j));
   const d = $("#detalle"); d.style.setProperty("--c", a.color);
   d.innerHTML = `<div class="par">
-    <div><span class="etiqueta">Estrategia ${i + 1} de 5</span><h3>${a.nombre}</h3><p>${a.idea}</p>
+    <div><span class="etiqueta">Estrategia ${i + 1} de 5</span><h3>${a.nombre}</h3>
+      <p class="conocido"><span class="etiqueta" style="display:inline;margin-right:.4rem">Nombre conocido</span>${a.conocido}</p><p>${a.idea}</p>
       <p class="analogia">${a.analogia}</p>
       <div class="ficha"><div><span class="etiqueta">Tiempo</span><b>${a.tiempo}</b></div><div><span class="etiqueta">Espacio</span><b>${a.espacio}</b></div><div><span class="etiqueta">¿Óptimo?</span><b>${a.optimo ? "Sí" : "No"}</b></div></div>
       <ul class="balance">${a.balance.map(([c, t]) => `<li class="${c}">${t}</li>`).join("")}</ul></div>
@@ -1149,7 +1216,7 @@ const LEYENDA_LAB = {
   fb: "<b>Fig. 3.</b> Tono claro: casillas visitadas. Número: veces que entró a esa casilla, si fue más de una (trabajo repetido). Línea de color: <code>camino</code>, la pila de recursión. Línea negra: <code>mejor</code>.",
   bt: "<b>Fig. 3.</b> Tono claro: casillas visitadas. Número: veces que entró, si fue más de una. ✕: vecino podado. Línea de color: <code>camino</code>. Línea negra: <code>mejor</code>.",
   gr: "<b>Fig. 3.</b> Número: h = <code>manhattan(v, fin)</code>. Recuadro de color: casilla dentro de <code>frontera</code>. Línea de color: camino hasta la casilla que acaba de sacar, siguiendo <code>padre</code>.",
-  dc: "<b>Fig. 3.</b> A y B: argumentos de la llamada actual a <code>resolver</code>; M: el punto medio <code>m</code>. Sombreado: la inundación en curso. Número: veces que la casilla fue inundada, si fue más de una. Línea de color: último tramo combinado.",
+  dc: "<b>Fig. 3.</b> A y B: argumentos de la llamada actual a <code>resolver_dv</code>; M: el punto medio <code>m</code>. Sombreado: la inundación en curso. Número: veces que la casilla fue inundada, si fue más de una. Línea de color: último tramo combinado.",
   pd: "<b>Fig. 3.</b> Número: <code>dist[x][y]</code>. Recuadro de color: casillas de <code>siguiente</code> (la capa nueva). Línea de color: <code>camino</code> mientras se reconstruye.",
 };
 let labL = null, labAlg = 4, traza = [], pasoLab = 0, labReloj = null, labSemilla = 1, labOptimo = 0, labLineas = [];
@@ -1172,18 +1239,18 @@ function hacerTraza(id, L) {
   if (id === "fb" || id === "bt") {
     const camino = [], en = new Uint8Array(n2), visitas = new Uint16Array(n2), llegada = new Float64Array(n2).fill(Infinity);
     let mejor = null, explorados = 0;
-    vars = () => [["camino", lista(camino)], ["mejor", mejor ? lista(mejor) : "None"], ["explorados", explorados]];
-    pila = () => [...camino.map(c => `explorar(celda=${T(c)})`).reverse(), raiz];
+    vars = () => [["camino", lista(camino)], ['datos["mejor"]', mejor ? lista(mejor) : "None"], ['datos["explorados"]', explorados]];
+    pila = () => [...camino.map(c => `${id === "fb" ? "explorar_fb" : "explorar_bt"}(celda=${T(c)})`).reverse(), raiz];
     llegada[L.ini] = 0;
     const explorar = (c) => {
       explorados++; camino.push(c); en[c] = 1; visitas[c]++;
-      add({ l: ["camino.append(celda)"], t: `Entra a ${T(c)} y la agrega al camino (${ps(camino.length - 1)} desde el inicio).`, d: [[c, "v"]], num: [[c, visitas[c]]], cam: camino.slice(), act: c, v: [["celda", T(c)]] });
+      add({ l: id === "fb" ? ["camino.append(celda)", "visitado[x][y] = True"] : ["camino.append(celda)"], t: `Entra a ${T(c)} y la agrega al camino (${ps(camino.length - 1)} desde el inicio).`, d: [[c, "v"]], num: [[c, visitas[c]]], cam: camino.slice(), act: c, v: [["celda", T(c)]] });
       if (c === L.fin) {
         if (!mejor || camino.length < mejor.length) {
           mejor = camino.slice();
-          add({ l: ["mejor = camino[:]"], t: id === "fb" ? `¡Llegó a la meta con ${ps(mejor.length - 1)}! Es el mejor hasta ahora, pero la fuerza bruta <b>no se detiene</b>: aún debe probar todos los demás caminos.`
+          add({ l: ['datos["mejor"] = list(camino)'], t: id === "fb" ? `¡Llegó a la meta con ${ps(mejor.length - 1)}! Es el mejor hasta ahora, pero la fuerza bruta <b>no se detiene</b>: aún debe probar todos los demás caminos.`
             : `Nueva mejor solución: ${ps(mejor.length - 1)}. Desde ahora la poda 1 corta cualquier rama que no pueda bajar de ${mejor.length - 1}.`, mejor: mejor.slice(), act: c, v: [["celda", T(c)], ["len(mejor) - 1", mejor.length - 1]] });
-        } else add({ l: ["if mejor is None or len(camino) < len(mejor):"], t: `Llegó otra vez a la meta, ahora con ${ps(camino.length - 1)}. Ya tenía un camino de ${mejor.length - 1}, así que no lo guarda.`, act: c, v: [["celda", T(c)], ["len(camino) - 1", camino.length - 1], ["len(mejor) - 1", mejor.length - 1]] });
+        } else add({ l: ['if datos["mejor"] is None or len(camino) < len(datos["mejor"]):'], t: `Llegó otra vez a la meta, ahora con ${ps(camino.length - 1)}. Ya tenía un camino de ${mejor.length - 1}, así que no lo guarda.`, act: c, v: [["celda", T(c)], ["len(camino) - 1", camino.length - 1], ["len(mejor) - 1", mejor.length - 1]] });
       } else if (id === "fb") {
         for (const v of L.ady[c]) if (!en[v]) explorar(v);
       } else {
@@ -1192,25 +1259,25 @@ function hacerTraza(id, L) {
           if (v === padre) continue;   // en Python también se descarta (poda 2); aquí se omite para no llenar la demostración
           const h = L.h(v, L.fin), base = [["celda", T(c)], ["pasos", pasos], ["v", T(v)], ["manhattan(v, fin)", h]];
           if (mejor && pasos + h >= mejor.length - 1) {
-            add({ l: ["if mejor is not None and pasos", "# poda 1"], t: `Poda 1 (cota) en ${T(v)}: pasos + manhattan = ${pasos} + ${h} = ${pasos + h} ≥ ${mejor.length - 1}. Ni yendo en línea recta mejoraría, así que <code>continue</code>.`, d: [[v, "x"]], act: c, v: [...base, ["len(mejor) - 1", mejor.length - 1]] });
+            add({ l: ["if mejor is not None and pasos + manhattan(v, fin)", "# poda 1"], t: `Poda 1 (cota) en ${T(v)}: pasos + manhattan = ${pasos} + ${h} = ${pasos + h} ≥ ${mejor.length - 1}. Ni yendo en línea recta mejoraría, así que <code>continue</code>.`, d: [[v, "x"]], act: c, v: [...base, ["len(mejor) - 1", mejor.length - 1]] });
             continue;
           }
           if (llegada[v] <= pasos) {
-            add({ l: ["mejor_llegada.get(v", "# poda 2"], t: `Poda 2 (dominancia) en ${T(v)}: <code>mejor_llegada[v]</code> = ${llegada[v]} ≤ ${pasos}. Ya se llegó ahí con menos pasos, así que <code>continue</code>.`, d: [[v, "x"]], act: c, v: [...base, ["mejor_llegada.get(v)", llegada[v]]] });
+            add({ l: ["if llegada[vx][vy] != -1 and llegada[vx][vy] <= pasos:", "# poda 2"], t: `Poda 2 (dominancia) en ${T(v)}: <code>llegada[vx][vy]</code> = ${llegada[v]} ≤ ${pasos}. Ya se llegó ahí con menos pasos, así que <code>continue</code>.`, d: [[v, "x"]], act: c, v: [...base, ["llegada[vx][vy]", llegada[v]]] });
             continue;
           }
-          add({ l: ["mejor_llegada[v] = pasos", "explorar(v)"], t: `${T(v)} pasa las dos podas: guarda <code>mejor_llegada[v] = ${pasos}</code> y llama a <code>explorar(v)</code>.`, act: c, v: [...base, ["mejor_llegada.get(v)", llegada[v] === Infinity ? "inf" : llegada[v]]] });
+          add({ l: ["llegada[vx][vy] = pasos", "explorar_bt(tablero, v, fin"], t: `${T(v)} pasa las dos podas: guarda <code>llegada[vx][vy] = ${pasos}</code> y llama a <code>explorar_bt</code> con ese vecino.`, act: c, v: [...base, ["llegada[vx][vy]", llegada[v] === Infinity ? -1 : llegada[v]]] });
           llegada[v] = pasos;
           explorar(v);
         }
       }
       camino.pop(); en[c] = 0;
-      add({ l: ["camino.pop()"], t: `Retrocede: <code>camino.pop()</code> quita ${T(c)} para probar la siguiente rama.`, cam: camino.slice(), act: camino.length ? camino[camino.length - 1] : -1, v: [["celda", T(c)]] });
+      add({ l: id === "fb" ? ["camino.pop()", "visitado[x][y] = False"] : ["camino.pop()"], t: `Retrocede: <code>camino.pop()</code> quita ${T(c)} para probar la siguiente rama.`, cam: camino.slice(), act: camino.length ? camino[camino.length - 1] : -1, v: [["celda", T(c)]] });
     };
     cierre(() => {
       explorar(L.ini);
-      add({ l: ["return mejor, explorados"], t: id === "fb" ? `Terminó: probó <b>todos</b> los caminos (${explorados} llamadas a <code>explorar</code>) y devuelve el más corto, de ${ps(mejor.length - 1)}.`
-        : `Terminó con ${explorados} llamadas a <code>explorar</code>. Devuelve el camino de ${ps(mejor.length - 1)}, el óptimo.`, cam: [], mejor, act: -1 });
+      add({ l: ['return datos["mejor"], datos["explorados"]'], t: id === "fb" ? `Terminó: probó <b>todos</b> los caminos (${explorados} llamadas a <code>${id === "fb" ? "explorar_fb" : "explorar_bt"}</code>) y devuelve el más corto, de ${ps(mejor.length - 1)}.`
+        : `Terminó con ${explorados} llamadas a <code>${id === "fb" ? "explorar_fb" : "explorar_bt"}</code>. Devuelve el camino de ${ps(mejor.length - 1)}, el óptimo.`, cam: [], mejor, act: -1 });
     });
   }
 
@@ -1223,7 +1290,7 @@ function hacerTraza(id, L) {
     vars = () => [["frontera", heapStr()], ["len(padre)", nPadre], ["explorados", explorados]];
     cierre(() => {
       padre[L.ini] = -1; nPadre = 1; frontera.push([L.h(L.ini, L.fin), L.ini]);
-      add({ l: ["frontera = [(manhattan(inicio, fin), inicio)]"], t: `La frontera empieza solo con el inicio, con h = manhattan(inicio, fin) = ${L.h(L.ini, L.fin)}.`, d: [[L.ini, "f"]], num: [[L.ini, L.h(L.ini, L.fin)]], act: L.ini });
+      add({ l: ["heapq.heappush(frontera, (manhattan(inicio, fin), inicio))"], t: `La frontera empieza solo con el inicio, con h = manhattan(inicio, fin) = ${L.h(L.ini, L.fin)}.`, d: [[L.ini, "f"]], num: [[L.ini, L.h(L.ini, L.fin)]], act: L.ini });
       while (frontera.length) {
         let j = 0;
         frontera.forEach((x, i) => { if (x[0] < frontera[j][0] || (x[0] === frontera[j][0] && x[1] < frontera[j][1])) j = i; });   // mismo orden que heapq con tuplas (h, (x, y))
@@ -1238,7 +1305,7 @@ function hacerTraza(id, L) {
         const nuevos = L.ady[c].filter(v => padre[v] === -2);
         nuevos.forEach(v => { padre[v] = c; nPadre++; frontera.push([L.h(v, L.fin), v]); });
         add(nuevos.length
-          ? { l: ["padre[v] = celda", "heapq.heappush"], t: `Agrega al heap ${nuevos.map(v => `(${L.h(v, L.fin)}, ${T(v)})`).join(", ")}.`, d: nuevos.map(v => [v, "f"]), num: nuevos.map(v => [v, L.h(v, L.fin)]), act: c, v: [["celda", T(c)], ["vecinos nuevos", lista(nuevos)]] }
+          ? { l: ["padre[v] = celda", "heapq.heappush(frontera, (manhattan(v, fin), v))"], t: `Agrega al heap ${nuevos.map(v => `(${L.h(v, L.fin)}, ${T(v)})`).join(", ")}.`, d: nuevos.map(v => [v, "f"]), num: nuevos.map(v => [v, L.h(v, L.fin)]), act: c, v: [["celda", T(c)], ["vecinos nuevos", lista(nuevos)]] }
           : { l: ["for v in vecinos(tablero, celda):"], t: `${T(c)} no tiene vecinos nuevos (todos ya están en <code>padre</code>): es un callejón sin salida.`, act: c, v: [["celda", T(c)]] });
       }
     });
@@ -1247,9 +1314,9 @@ function hacerTraza(id, L) {
   if (id === "dc") {
     const marcos = [], visitas = new Uint16Array(n2);
     let explorados = 0, local = {};
-    const R = (r) => r === Infinity ? "inf" : r;
-    vars = () => [...Object.entries(local), ["explorados", explorados]];
-    pila = () => [...marcos.map(([a, b, r]) => `resolver(a=${T(a)}, b=${T(b)}, radio=${R(r)})`).reverse(), raiz];
+    const R = (r) => r === Infinity ? "None" : r;
+    vars = () => [...Object.entries(local), ['datos["explorados"]', explorados]];
+    pila = () => [...marcos.map(([a, b, r]) => `resolver_dv(a=${T(a)}, b=${T(b)}, radio=${R(r)})`).reverse(), raiz];
     const inundar = (o, radio) => {
       const dist = new Map([[o, 0]]), cola = [o];
       for (let i = 0; i < cola.length; i++) {
@@ -1263,10 +1330,10 @@ function hacerTraza(id, L) {
     const resolver = (a, b, radio) => {
       marcos.push([a, b, radio]);
       local = { a: T(a), b: T(b), radio: R(radio) };
-      add({ l: ["def resolver(a, b, radio):"], t: `Nueva llamada: <code>resolver</code> de A = ${T(a)} a B = ${T(b)}.`, ab: [a, b], m: -1, reg: [], act: -1 });
+      add({ l: ["def resolver_dv(tablero, a, b, radio, datos):"], t: `Nueva llamada: <code>resolver_dv</code> de A = ${T(a)} a B = ${T(b)}.`, ab: [a, b], m: -1, reg: [], act: -1 });
       if (L.h(a, b) <= 1) {
         const r = a === b ? [a] : [a, b];
-        add({ l: ["return [a] if a == b else [a, b]"], t: a === b ? "A y B son la misma casilla: caso base." : "A y B son vecinas (<code>manhattan(a, b) <= 1</code>): caso base, el camino es directo.", cam: r, v: [["manhattan(a, b)", L.h(a, b)]] });
+        add({ l: a === b ? ["if a == b:", "return [a]"] : ["if manhattan(a, b) == 1:", "return [a, b]"], t: a === b ? "A y B son la misma casilla: caso base." : "A y B son vecinas (<code>manhattan(a, b) == 1</code>): caso base, el camino es directo.", cam: r, v: [["manhattan(a, b)", L.h(a, b)]] });
         marcos.pop(); return r;
       }
       const da = inundar(a, radio), ka = [...da.keys()], d = da.get(b);
@@ -1275,24 +1342,24 @@ function hacerTraza(id, L) {
       const db = inundar(b, d), kb = [...db.keys()];
       explorados += ka.length + kb.length;
       local = { ...local, "len(desde_b)": kb.length };
-      add({ l: ["desde_b = inundar(tablero, b, d)", "explorados += len(desde_a) + len(desde_b)"], t: `Inunda desde B hasta distancia ${d} (${kb.length} casillas). Varias ya se habían inundado en otras llamadas: <b>trabajo repetido</b>.`, reg: kb, ...marcar(kb) });
+      add({ l: ["desde_b = inundar(tablero, b, d)", 'datos["explorados"] += len(desde_a) + len(desde_b)'], t: `Inunda desde B hasta distancia ${d} (${kb.length} casillas). Varias ya se habían inundado en otras llamadas: <b>trabajo repetido</b>.`, reg: kb, ...marcar(kb) });
       const mitad = d >> 1;
       let m = -1;
       for (const [c, k] of da) if (k === mitad && db.get(c) === d - mitad) { m = c; break; }
       local = { ...local, mitad, m: T(m) };
-      add({ l: ["mitad = d // 2", "m = next("], t: `Punto medio: <code>m</code> = ${T(m)}, a ${ps(mitad)} de A y a ${ps(d - mitad)} de B.`, m, reg: [] });
-      add({ l: ["izquierda = resolver(a, m, mitad)", "derecha = resolver(m, b, d - mitad)"], t: `Vencer: dos llamadas recursivas más pequeñas, A → M (${ps(mitad)}) y M → B (${ps(d - mitad)}).` });
+      add({ l: ["mitad = d // 2", "for celda in desde_a:", "m = celda"], t: `Punto medio: <code>m</code> = ${T(m)}, a ${ps(mitad)} de A y a ${ps(d - mitad)} de B.`, m, reg: [] });
+      add({ l: ["izquierda = resolver_dv(tablero, a, m, mitad, datos)", "derecha = resolver_dv(tablero, m, b, d - mitad, datos)"], t: `Vencer: dos llamadas recursivas más pequeñas, A → M (${ps(mitad)}) y M → B (${ps(d - mitad)}).` });
       const izq = resolver(a, m, mitad), der = resolver(m, b, d - mitad);
       marcos.pop();
       const r = izq.slice(0, -1).concat(der);
       local = { a: T(a), b: T(b), radio: R(radio), d, mitad, m: T(m), "len(izquierda)": izq.length, "len(derecha)": der.length };
-      add({ l: ["return izquierda[:-1] + derecha"], t: `Combinar: une A → M y M → B. El tramo de ${T(a)} a ${T(b)} queda con ${ps(r.length - 1)}.`, ab: [a, b], m, cam: r });
+      add({ l: ["izquierda.pop()", "return izquierda + derecha"], t: `Combinar: quita M repetida y une A → M y M → B. El tramo de ${T(a)} a ${T(b)} queda con ${ps(r.length - 1)}.`, ab: [a, b], m, cam: r });
       return r;
     };
     cierre(() => {
       const r = resolver(L.ini, L.fin, Infinity);
       local = {};
-      add({ l: ["return resolver(inicio, fin, float(\"inf\")), explorados"], t: `Terminó: camino de ${ps(r.length - 1)} (óptimo), con ${explorados} casillas inundadas en total. Una tabla habría evitado repetir esas inundaciones.`, mejor: r, cam: [], ab: null, m: -1, act: -1 });
+      add({ l: ['return camino, datos["explorados"]'], t: `Terminó: camino de ${ps(r.length - 1)} (óptimo), con ${explorados} casillas inundadas en total. Una tabla habría evitado repetir esas inundaciones.`, mejor: r, cam: [], ab: null, m: -1, act: -1 });
     });
   }
 
@@ -1302,18 +1369,18 @@ function hacerTraza(id, L) {
     vars = () => [["capa", lista(capa)], ["siguiente", lista(siguiente)], ["explorados", explorados], ...(camino ? [["camino", lista(camino)]] : [])];
     cierre(() => {
       dist[L.ini] = 0;
-      add({ l: ["dist[inicio[0]][inicio[1]] = 0", "capa, explorados = [inicio], 0"], t: `<code>dist[inicio] = 0</code> y la primera capa es solo el inicio. Las demás casillas valen -1 (sin calcular).`, num: [[L.ini, 0]], d: [[L.ini, "f"]], act: L.ini });
+      add({ l: ["dist[inicio[0]][inicio[1]] = 0", "capa = [inicio]"], t: `<code>dist[inicio] = 0</code> y la primera capa es solo el inicio. Las demás casillas valen -1 (sin calcular).`, num: [[L.ini, 0]], d: [[L.ini, "f"]], act: L.ini });
       let k = 0;
       while (capa.length && dist[L.fin] === -1) {
         siguiente = [];
-        add({ l: ["while capa and dist[fin[0]][fin[1]] == -1:", "siguiente = []"], t: `Nueva capa: ${capa.length === 1 ? "1 casilla" : `${capa.length} casillas`} con dist = ${k}. Solo hace falta mirar sus vecinos.`, act: -1, v: [["k (dist de la capa)", k]] });
+        add({ l: ["while len(capa) > 0 and dist[fin[0]][fin[1]] == -1:", "siguiente = []"], t: `Nueva capa: ${capa.length === 1 ? "1 casilla" : `${capa.length} casillas`} con dist = ${k}. Solo hace falta mirar sus vecinos.`, act: -1, v: [["k (dist de la capa)", k]] });
         for (const c of capa) {
           explorados++;
           const nuevos = L.ady[c].filter(v => dist[v] === -1);
           nuevos.forEach(v => { dist[v] = k + 1; siguiente.push(v); });
           const v = [["celda", T(c)], ["dist[celda]", k], ["vecinos con dist == -1", lista(nuevos)]];
           add(nuevos.length
-            ? { l: ["dist[vx][vy] = dist[celda[0]][celda[1]] + 1", "siguiente.append((vx, vy))"], t: `Desde ${T(c)}: <code>dist</code> = ${k} + 1 = ${k + 1} para ${nuevos.map(T).join(", ")}.`, d: [[c, "v"], ...nuevos.map(w => [w, "f"])], num: nuevos.map(w => [w, k + 1]), act: c, v }
+            ? { l: ["dist[vx][vy] = dist[x][y] + 1", "siguiente.append((vx, vy))"], t: `Desde ${T(c)}: <code>dist</code> = ${k} + 1 = ${k + 1} para ${nuevos.map(T).join(", ")}.`, d: [[c, "v"], ...nuevos.map(w => [w, "f"])], num: nuevos.map(w => [w, k + 1]), act: c, v }
             : { l: ["if dist[vx][vy] == -1:"], t: `Desde ${T(c)}: todos sus vecinos ya tienen <code>dist</code>; no recalcula nada.`, d: [[c, "v"]], act: c, v });
         }
         capa = siguiente; k++;
@@ -1324,9 +1391,9 @@ function hacerTraza(id, L) {
       while (camino[camino.length - 1] !== L.ini) {
         const c = camino[camino.length - 1], v = L.ady[c].find(w => dist[w] === dist[c] - 1);
         camino.push(v);
-        add({ l: ["camino.append(next("], t: `Desde ${T(c)} (dist ${dist[c]}) va al vecino ${T(v)}, que tiene dist ${dist[v]}.`, cam: camino.slice(), act: v, v: [["(x, y)", T(c)], ["dist[x][y]", dist[c]]] });
+        add({ l: ["if dist[v[0]][v[1]] == dist[x][y] - 1:", "camino.append(celda)"], t: `Desde ${T(c)} (dist ${dist[c]}) va al vecino ${T(v)}, que tiene dist ${dist[v]}.`, cam: camino.slice(), act: v, v: [["celda", T(c)], ["dist[x][y]", dist[c]]] });
       }
-      add({ l: ["return camino[::-1], explorados"], t: `Listo: devuelve <code>camino[::-1]</code>, de ${ps(dist[L.fin])}. Cada casilla se calculó <b>una sola vez</b>.`, mejor: camino.slice().reverse(), cam: [], act: -1 });
+      add({ l: ["camino.reverse()", "return camino, explorados"], t: `Listo: voltea <code>camino</code> con <code>reverse()</code> y lo devuelve, de ${ps(dist[L.fin])}. Cada casilla se calculó <b>una sola vez</b>.`, mejor: camino.slice().reverse(), cam: [], act: -1 });
     });
   }
   return ev;
@@ -1355,7 +1422,7 @@ function elegirAlgLab(i) {
   const codigo = document.getElementById("py-" + a.id).textContent;
   labLineas = codigo.split("\n");
   $("#lab-codigo").innerHTML = resaltar(codigo).split("\n").map((l, j) => `<div class="ln"><span class="nl">${j + 1}</span><span>${l || " "}</span></div>`).join("");
-  $("#lab-funcion").textContent = codigo.match(/def (\w+)/)[1] + "()";
+  $("#lab-funcion").textContent = { fb: "fuerza_bruta()", bt: "backtracking_poda()", gr: "voraz()", dc: "divide_y_venceras()", pd: "programacion_dinamica()" }[a.id];
   $("#lab-porque").innerHTML = PORQUE[a.id];
   $("#lab-leyenda").innerHTML = LEYENDA_LAB[a.id];
   $("#lab-barra").max = traza.length - 1;
