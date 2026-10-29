@@ -223,6 +223,17 @@ select.sel { font: 500 .85rem var(--sans); color: var(--tinta); border: 0; borde
 .comparacion .barra { grid-template-columns: 13rem minmax(0, 1fr) 17rem; }
 @media (max-width: 700px) { .comparacion .barra { grid-template-columns: 1fr; } }
 
+/* ---------- Conclusiones ---------- */
+.conclusion-final { padding: 1.6rem 1.8rem; border-radius: var(--r); background: var(--papel-claro); margin-top: .6rem; }
+.conclusion-final h3 { font-size: clamp(1.6rem, 3.2vw, 2.4rem); margin: .2rem 0 .8rem; }
+.conclusion-final h3 span { color: var(--pd); }
+.razones { margin: .6rem 0 0; padding-left: 1.2rem; }
+.razones li { margin: .45rem 0; }
+.subtitulo { font-size: 1.6rem; margin: 2.4rem 0 .5rem; }
+table.casos td { vertical-align: top; }
+table.casos td.texto { min-width: 13rem; }
+.resumen-final { font-family: var(--serif); font-size: 1.2rem; line-height: 1.5; margin-top: 1.6rem; max-width: 52rem; }
+
 /* ---------- Vidrio solo en los bordes ----------
    Anillo de 1.5px con un degradado de reflejos (máscara: solo se pinta el borde, el interior queda opaco).
    En canvas y contenedores con scroll, que no admiten el anillo, se usa --anillo (sombras). */
@@ -231,13 +242,13 @@ select.sel { font: 500 .85rem var(--sans); color: var(--tinta); border: 0; borde
   --brillo: linear-gradient(145deg, rgba(255,255,255,.95) 0%, rgba(255,255,255,.3) 26%, rgba(29,28,26,.2) 50%, rgba(255,255,255,.3) 74%, rgba(255,255,255,.95) 100%);
   --anillo: inset 0 0 0 1px rgba(255,255,255,.75), 0 0 0 1px rgba(29,28,26,.12), 0 1px 0 rgba(255,255,255,.9), 0 6px 18px -14px rgba(29,28,26,.5);
 }
-.btn, .conmutador, .panel-control, .tablero, .indice, .ficha, .grafica, .barra-expo, dialog, .nota-orador, .datos-clave > div, .aviso-turbo, .lab-caja, .comparacion {
+.btn, .conmutador, .panel-control, .tablero, .indice, .ficha, .grafica, .barra-expo, dialog, .nota-orador, .datos-clave > div, .aviso-turbo, .lab-caja, .comparacion, .conclusion-final {
   position: relative;   /* dialog: su posición fija del navegador se restablece abajo */
   box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 0 0 1px rgba(29,28,26,.08), 0 8px 22px -16px rgba(29,28,26,.45);
 }
 .barra-expo { position: fixed; }
 dialog:modal { position: fixed; }
-.btn::after, .conmutador::after, .panel-control::after, .tablero::after, .indice::after, .ficha::after, .grafica::after, .barra-expo::after, dialog::after, .nota-orador::after, .datos-clave > div::after, .aviso-turbo::after, .lab-caja::after, .comparacion::after {
+.btn::after, .conmutador::after, .panel-control::after, .tablero::after, .indice::after, .ficha::after, .grafica::after, .barra-expo::after, dialog::after, .nota-orador::after, .datos-clave > div::after, .aviso-turbo::after, .lab-caja::after, .comparacion::after, .conclusion-final::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
   background: var(--brillo);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
@@ -517,11 +528,42 @@ dialog:modal { position: fixed; }
   </div>
 </section>
 
+<!-- ====================== §8 Conclusiones ====================== -->
+<section class="diapo" id="conclusiones" data-diapo="Conclusiones">
+  <div class="hoja">
+    <div class="num">§<b>8</b></div>
+    <div class="ancho">
+      <h2 class="titulo-sec">Conclusiones</h2>
+      <div class="conclusion-final">
+        <span class="etiqueta">En cualquier caso</span>
+        <h3>El algoritmo más óptimo es la <span>programación dinámica</span>.</h3>
+        <p style="margin:0">Cuando se pide el camino más corto, ninguna otra estrategia la supera en ningún tipo de laberinto de los que probamos:</p>
+        <ul class="razones" id="razones-pd"></ul>
+      </div>
+
+      <h3 class="subtitulo">Según el caso favorable</h3>
+      <p class="entradilla" style="margin-bottom:1rem">Cada estrategia tiene un escenario donde rinde bien. Esto es lo que mostraron las mediciones:</p>
+      <div class="desplazable">
+        <table class="casos">
+          <thead><tr><th>Algoritmo</th><th style="text-align:left">Caso favorable</th><th style="text-align:left">Por qué funciona ahí</th><th style="text-align:left">Evidencia medida</th><th style="text-align:left">Cuándo evitarlo</th></tr></thead>
+          <tbody id="tabla-casos"></tbody>
+        </table>
+      </div>
+      <p class="resumen-final">En resumen: para resolver laberintos gigantescos con la mejor complejidad temporal y espacial, garantizando el camino más corto, la respuesta es la <b>programación dinámica</b>, con <b>O(N·M)</b> en tiempo y en espacio. Las demás estrategias solo compiten en su caso favorable: el voraz cuando basta con un camino cualquiera, y la fuerza bruta o el backtracking cuando el laberinto es pequeño o casi no tiene ciclos.</p>
+      <div class="nota-orador"><ul>
+        <li>Primero la respuesta corta: <b>en cualquier caso, la PD</b>. Leer las razones con sus cifras.</li>
+        <li>Luego la tabla: no hay algoritmo "inútil", cada uno tiene un caso favorable. El voraz es el más rápido si no importa que el camino sea el más corto; la fuerza bruta sirve de referencia para verificar.</li>
+        <li>Cerrar con el resumen y abrir a preguntas.</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
 <footer><div class="hoja">Alejandro Bermudez · Juan David Mosquera · Santiago Restrepo · Análisis y Diseño de Algoritmos 2026-2 · Notebook: <code>laberintos.ipynb</code> · Entrega 1: <code>laberinto.py</code></div></footer>
 
 <!-- ====================== Barra de exposición ====================== -->
 <nav class="barra-expo" aria-label="Herramientas de exposición">
-  <span class="info-expo"><span id="expo-pos">§0 / 7</span><span id="expo-reloj" title="Clic para reiniciar el cronómetro" style="cursor:pointer">00:00</span></span>
+  <span class="info-expo"><span id="expo-pos">§0 / 8</span><span id="expo-reloj" title="Clic para reiniciar el cronómetro" style="cursor:pointer">00:00</span></span>
   <button id="t-expo" aria-pressed="false" title="Modo exposición (P)"><span class="txt">Exponer</span> <kbd>P</kbd></button>
   <button id="t-notas" aria-pressed="false" title="Mostrar el guion (N)"><span class="txt">Guion</span> <kbd>N</kbd></button>
   <button id="t-presentador" title="Vista del presentador en otra ventana (V)"><span class="txt">Presentador</span> <kbd>V</kbd></button>
@@ -1528,6 +1570,67 @@ function dibujarDatos() {
   $("#tabla-veredicto").innerHTML = `<table><caption>Tabla 2. Clasificación final.</caption><thead><tr><th>Estrategia</th><th>¿Camino más corto?</th><th>Tiempo en ${nTodos} × ${nTodos} (perfecto)</th><th>Mayor laberinto con ciclos resuelto</th></tr></thead><tbody>${orden.map(filaVer).join("")}</tbody></table>`;
 }
 
+// ======================= §8 Conclusiones (cifras desde resultados.js) =======================
+function dibujarConclusiones() {
+  const R = window.RESULTADOS;
+  const g = (fam, alg, n) => R?.familias[fam][alg].find(d => d.n === n);
+  const ok = (d) => d && d.estado === "ok";
+  const ultimo = (fam, alg) => R && [...R.familias[fam][alg]].reverse().find(ok);
+  const seg = (d) => `${fmt(+(d.ms / 1000).toPrecision(3))} s`;
+  const veces = (a, b) => `${fmt(+(a.ms / b.ms).toPrecision(3))}×`;
+  const PD = "Programación dinámica", DV = "Divide y vencerás", VZ = "Voraz (Greedy)", BT = "Backtracking con poda", FB = "Fuerza bruta";
+  const nMax = R ? Math.max(...R.tamanos.filter(n => ok(g("perfecto", PD, n)))) : 0;
+  const nComp = R ? Math.max(...R.tamanos.filter(n => ok(g("perfecto", PD, n)) && ok(g("perfecto", DV, n)))) : 0;
+  const nTodos = R ? Math.max(...R.tamanos.filter(n => [PD, DV, VZ, BT, FB].every(a => ok(g("perfecto", a, n))))) : 0;
+  const pdP = g("perfecto", PD, nMax), pdC = g("ciclos", PD, nMax);
+
+  // menor tamaño desde el cual la PD es la exacta más rápida en todos los tamaños mayores (ambas familias)
+  let desde = null;
+  if (R) for (const n of [...R.tamanos].reverse()) {
+    const gana = ["perfecto", "ciclos"].every(f => { const p = g(f, PD, n); return [DV, BT, FB].every(a => { const d = g(f, a, n); return !ok(d) || d.ms >= p.ms; }); });
+    if (gana) desde = n; else break;
+  }
+
+  $("#razones-pd").innerHTML = [
+    "<b>Siempre encuentra el camino más corto.</b> Es exacta, como la fuerza bruta, pero sin su costo exponencial.",
+    `<b>Tiempo y memoria O(N·M):</b> cada casilla se calcula una sola vez.${pdP ? ` Resolvió ${nMax} × ${nMax} (${fmt(pdP.libres)} casillas libres) en ${seg(pdP)}${ok(pdC) ? `, y con ciclos en ${seg(pdC)}` : ""}.` : ""}`,
+    "<b>No depende de la forma del laberinto:</b> rinde igual en laberintos perfectos y con ciclos, donde la fuerza bruta y el backtracking dejan de terminar.",
+    R ? `<b>Es la exacta más rápida${desde && desde > R.tamanos[0] ? ` desde ${desde} × ${desde}` : ""}:</b> en ${nComp} × ${nComp}, divide y vencerás tardó ${veces(g("perfecto", DV, nComp), g("perfecto", PD, nComp))} más, y en ${nTodos} × ${nTodos} el backtracking tardó ${veces(g("perfecto", BT, nTodos), g("perfecto", PD, nTodos))} y la fuerza bruta ${veces(g("perfecto", FB, nTodos), g("perfecto", PD, nTodos))}.` : "<b>Es la exacta más rápida</b> en los laberintos grandes.",
+    "<b>Es iterativa:</b> no tiene límite de recursión ni riesgo de desbordar la pila de llamadas.",
+  ].map(x => `<li>${x}</li>`).join("");
+
+  const vzC = g("ciclos", VZ, nMax), pdCm = g("ciclos", PD, nMax), vzP = g("perfecto", VZ, nMax);
+  const btMax = ultimo("ciclos", BT), btFallo = R && R.familias.ciclos[BT].find(d => d.estado === "limite");
+  const fbMax = ultimo("ciclos", FB), dvMax = ultimo("perfecto", DV);
+  const ev = (txt) => R ? txt() : "—";
+  const filas = [
+    ["pd", "Cualquier laberinto, sobre todo cuando se exige el camino más corto o el laberinto es grande.",
+      "Llena la tabla <code>dist</code> una sola vez, capa por capa. Su costo no depende de cuántos caminos distintos haya.",
+      ev(() => `${nMax} × ${nMax}: ${seg(pdP)} (perfecto) y ${seg(pdCm)} (con ciclos), siempre con el camino óptimo.`),
+      "Prácticamente nunca. Solo necesita memoria para la tabla completa, O(N·M)."],
+    ["gr", "Cuando basta con <i>un</i> camino rápido, aunque no sea el más corto, o cuando el laberinto es perfecto (un único camino).",
+      "Avanza directo hacia la meta guiado por la distancia Manhattan y explora muy pocas casillas. En un laberinto perfecto el único camino es también el más corto.",
+      ev(() => `Con ciclos en ${nMax} × ${nMax}: ${veces(pdCm, vzC)} más rápido que la PD (exploró ${fmt(vzC.explorados)} casillas frente a ${fmt(pdCm.explorados)}), pero con ${fmt(vzC.pasos - pdCm.pasos)} pasos de más. Perfecto: ${seg(vzP)}, camino óptimo.`),
+      "Cuando el resultado debe ser el camino más corto: no lo garantiza."],
+    ["bt", "Laberintos pequeños o con pocos ciclos, o problemas con restricciones extra que se puedan podar.",
+      "Las podas por cota y por dominancia descartan ramas enteras. Si encuentra pronto una buena solución, corta casi todo lo demás.",
+      ev(() => `Perfecto ${nTodos} × ${nTodos}: ${seg(g("perfecto", BT, nTodos))} (${veces(g("perfecto", BT, nTodos), g("perfecto", PD, nTodos))} la PD). Con ciclos resolvió hasta ${btMax.n} × ${btMax.n}${btFallo ? ` y superó el límite en ${btFallo.n} × ${btFallo.n}` : ""}.`),
+      "Laberintos grandes con ciclos: sigue siendo cuadrático y usa recursión profunda."],
+    ["dc", "Laberintos de pasillos estrechos, o cuando se quiere repartir el trabajo: las mitades A → M y M → B son independientes y podrían resolverse en paralelo.",
+      "Con pasillos estrechos cada inundación cubre unas d casillas, así que el costo queda en Θ(d log d) con solo log d niveles de recursión.",
+      ev(() => `Siempre óptimo, pero ${veces(g("perfecto", DV, nTodos), g("perfecto", PD, nTodos))} más lento que la PD en ${nTodos} × ${nTodos} y ${veces(dvMax, g("perfecto", PD, dvMax.n))} en ${dvMax.n} × ${dvMax.n}; llegó hasta ${dvMax.n} × ${dvMax.n}.`),
+      "Laberintos grandes o abiertos: repite inundaciones porque sus subproblemas se solapan."],
+    ["fb", "Laberintos diminutos o perfectos (con un solo camino), o como referencia para comprobar que otro algoritmo da el óptimo.",
+      "Si solo existe un camino, no hay ramas que probar y visita cada casilla una vez. En tamaños diminutos su simplicidad no cuesta nada.",
+      ev(() => `Perfecto ${nTodos} × ${nTodos}: ${seg(g("perfecto", FB, nTodos))} (${veces(g("perfecto", FB, nTodos), g("perfecto", PD, nTodos))} la PD). Con ciclos solo terminó hasta ${fbMax.n} × ${fbMax.n}.`),
+      "Cualquier laberinto mediano con ciclos: el número de caminos crece exponencialmente."],
+  ];
+  $("#tabla-casos").innerHTML = filas.map(([id, caso, porque, evidencia, evitar]) => {
+    const a = ALG.find(x => x.id === id);
+    return `<tr${id === "pd" ? ' class="ganador"' : ""}><td><span class="cod" style="--c:${a.color}">${a.corto}</span> ${a.nombre}</td><td class="texto">${caso}</td><td class="texto">${porque}</td><td class="texto">${evidencia}</td><td class="texto">${evitar}</td></tr>`;
+  }).join("");
+}
+
 // ======================= Herramientas de exposición =======================
 const diapos = [...document.querySelectorAll("[data-diapo]")];
 let actual = 0, inicioReloj = null, presentador = null, escala = 1;
@@ -1672,6 +1775,7 @@ elegirAlgLab(0);
 dibujarResultados();
 dibujarTeoria();
 dibujarDatos();
+dibujarConclusiones();
 figuraPortada();
 refrescarBarra();
 </script>
