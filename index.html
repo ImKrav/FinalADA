@@ -116,6 +116,7 @@ input[type=range] { width: 100%; accent-color: var(--tinta); }
 .indice button:hover { background: rgba(29, 28, 26, .04); }
 .indice button[aria-selected=true] { color: var(--tinta); background: color-mix(in srgb, var(--c) 13%, transparent); }
 .detalle h3 { font-size: 1.8rem; margin-bottom: .5rem; }
+.conocido { font-size: .92rem; padding: .6rem .8rem; border-radius: 12px; background: color-mix(in srgb, var(--c) 10%, transparent); }
 .analogia { font-family: var(--serif); font-style: italic; font-size: 1.1rem; border-left: 3px solid var(--c); padding-left: 1rem; margin: 1rem 0; }
 .ficha { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 16px; background: var(--papel-claro); padding: .2rem 1rem; margin: 1rem 0; }
 .ficha div { padding: .6rem .8rem .6rem 0; }
@@ -223,6 +224,23 @@ select.sel { font: 500 .85rem var(--sans); color: var(--tinta); border: 0; borde
 .comparacion .barra { grid-template-columns: 13rem minmax(0, 1fr) 17rem; }
 @media (max-width: 700px) { .comparacion .barra { grid-template-columns: 1fr; } }
 
+/* ---------- Big O ---------- */
+.bigo-controles { display: flex; flex-wrap: wrap; gap: .4rem 0; }
+.grafica-bigo { height: 470px; }
+.bigo-lectura { margin-top: 1.2rem; max-width: 52rem; }
+.bigo-porque { list-style: none; padding: 0; margin: .4rem 0 0; display: grid; gap: .5rem; max-width: 62rem; }
+
+/* ---------- Conclusiones ---------- */
+.conclusion-final { padding: 1.6rem 1.8rem; border-radius: var(--r); background: var(--papel-claro); margin-top: .6rem; }
+.conclusion-final h3 { font-size: clamp(1.6rem, 3.2vw, 2.4rem); margin: .2rem 0 .8rem; }
+.conclusion-final h3 span { color: var(--pd); }
+.razones { margin: .6rem 0 0; padding-left: 1.2rem; }
+.razones li { margin: .45rem 0; }
+.subtitulo { font-size: 1.6rem; margin: 2.4rem 0 .5rem; }
+table.casos td { vertical-align: top; }
+table.casos td.texto { min-width: 13rem; }
+.resumen-final { font-family: var(--serif); font-size: 1.2rem; line-height: 1.5; margin-top: 1.6rem; max-width: 52rem; }
+
 /* ---------- Vidrio solo en los bordes ----------
    Anillo de 1.5px con un degradado de reflejos (máscara: solo se pinta el borde, el interior queda opaco).
    En canvas y contenedores con scroll, que no admiten el anillo, se usa --anillo (sombras). */
@@ -231,13 +249,13 @@ select.sel { font: 500 .85rem var(--sans); color: var(--tinta); border: 0; borde
   --brillo: linear-gradient(145deg, rgba(255,255,255,.95) 0%, rgba(255,255,255,.3) 26%, rgba(29,28,26,.2) 50%, rgba(255,255,255,.3) 74%, rgba(255,255,255,.95) 100%);
   --anillo: inset 0 0 0 1px rgba(255,255,255,.75), 0 0 0 1px rgba(29,28,26,.12), 0 1px 0 rgba(255,255,255,.9), 0 6px 18px -14px rgba(29,28,26,.5);
 }
-.btn, .conmutador, .panel-control, .tablero, .indice, .ficha, .grafica, .barra-expo, dialog, .nota-orador, .datos-clave > div, .aviso-turbo, .lab-caja, .comparacion {
+.btn, .conmutador, .panel-control, .tablero, .indice, .ficha, .grafica, .barra-expo, dialog, .nota-orador, .datos-clave > div, .aviso-turbo, .lab-caja, .comparacion, .conclusion-final {
   position: relative;   /* dialog: su posición fija del navegador se restablece abajo */
   box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 0 0 1px rgba(29,28,26,.08), 0 8px 22px -16px rgba(29,28,26,.45);
 }
 .barra-expo { position: fixed; }
 dialog:modal { position: fixed; }
-.btn::after, .conmutador::after, .panel-control::after, .tablero::after, .indice::after, .ficha::after, .grafica::after, .barra-expo::after, dialog::after, .nota-orador::after, .datos-clave > div::after, .aviso-turbo::after, .lab-caja::after, .comparacion::after {
+.btn::after, .conmutador::after, .panel-control::after, .tablero::after, .indice::after, .ficha::after, .grafica::after, .barra-expo::after, dialog::after, .nota-orador::after, .datos-clave > div::after, .aviso-turbo::after, .lab-caja::after, .comparacion::after, .conclusion-final::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
   background: var(--brillo);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
@@ -286,8 +304,9 @@ dialog:modal { position: fixed; }
           <tr><td><b>Entrada</b></td><td class="texto">Matriz de casillas libres y paredes (⬜ / ⬛ en el notebook), un inicio y un fin.</td></tr>
           <tr><td><b>Salida</b></td><td class="texto">La lista de casillas del camino, o "no hay salida".</td></tr>
           <tr><td><b>Restricciones</b></td><td class="texto">No salir del tablero, no pisar paredes, moverse solo arriba, abajo, izquierda o derecha.</td></tr>
-          <tr><td><b><i>V</i></b></td><td class="texto">Número de casillas libres (≈ <i>N·M</i>/2). Es el tamaño de la entrada en todas las complejidades.</td></tr>
-          <tr><td><b><i>d</i></b></td><td class="texto">Longitud del camino más corto (<i>d</i> ≤ <i>V</i>).</td></tr>
+          <tr><td><b><i>n</i></b></td><td class="texto">Tamaño de la entrada: casillas del tablero, <i>n</i> = <i>N·M</i>. Es la <i>n</i> de todas las complejidades Big O.</td></tr>
+          <tr><td><b><i>V</i></b></td><td class="texto">Casillas libres (≈ <i>n</i>/2). Es lo que se mide en el experimento; tiene el mismo orden que <i>n</i>.</td></tr>
+          <tr><td><b><i>d</i></b></td><td class="texto">Longitud del camino más corto (<i>d</i> ≤ <i>n</i>).</td></tr>
         </tbody>
       </table></div>
       <div class="nota-orador"><ul>
@@ -422,7 +441,7 @@ dialog:modal { position: fixed; }
     <div class="num">§<b>5</b></div>
     <div class="principal">
       <h2 class="titulo-sec">Experimento con laberintos gigantes</h2>
-      <p class="entradilla">Mediciones reales en Python, de 11 × 11 a 2001 × 2001 (unos 2 millones de casillas libres). Cuando una línea se corta, el algoritmo dejó de probarse.</p>
+      <p class="entradilla">Mediciones reales en Python, de 11 × 11 a 2001 × 2001 (unos 2 millones de casillas libres). La tabla y las barras muestran lo que se midió; «—» o «límite» indican que el algoritmo dejó de probarse.</p>
       <div>
         <div class="conmutador" id="g-familia" role="group" aria-label="Familia de laberintos">
           <button data-v="perfecto" aria-pressed="true">Perfectos</button><button data-v="ciclos" aria-pressed="false">Con ciclos (10 %)</button>
@@ -430,18 +449,9 @@ dialog:modal { position: fixed; }
         <div class="conmutador" id="g-metrica" role="group" aria-label="Métrica">
           <button data-v="ms" aria-pressed="true">Tiempo</button><button data-v="kb" aria-pressed="false">Memoria</button><button data-v="explorados" aria-pressed="false">Casillas exploradas</button>
         </div>
-        <div class="conmutador" id="g-escala" role="group" aria-label="Escala de la gráfica">
-          <button data-v="lineal" aria-pressed="true">Escala lineal</button><button data-v="log" aria-pressed="false">Escala log</button>
-        </div>
       </div>
-      <figure>
-        <div class="grafica"><canvas id="grafica" aria-label="Gráfica de resultados"></canvas></div>
-        <figcaption id="fig-grafica"></figcaption>
-      </figure>
     </div>
     <aside class="margen">
-      <p><strong>Escala lineal:</strong> muestra las diferencias reales de tiempo; ahí se ve cuánto se separa cada algoritmo a medida que crece el laberinto.</p>
-      <p><strong>Escala log:</strong> la <i>pendiente</i> es el exponente de la complejidad (1 = lineal, 2 = cuadrática), pero las diferencias se ven más pequeñas.</p>
       <p><strong>Método.</strong> <code>time.perf_counter</code>, mejor de 3 corridas; memoria con <code>tracemalloc</code> en una corrida aparte.</p>
       <p><strong>Límites.</strong> Un algoritmo que tarda más de 30 s o supera su presupuesto de operaciones deja de probarse en tamaños mayores. Fuerza bruta y backtracking llegan hasta 1001 × 1001 (por encima, la pila de recursión superaría el millón de niveles).</p>
       <p>La memoria de los recursivos solo se midió hasta 81 × 81: <code>tracemalloc</code> se vuelve cuadrático con recursión profunda.</p>
@@ -454,10 +464,8 @@ dialog:modal { position: fixed; }
       </div>
       <div class="desplazable" id="tabla"></div>
       <div class="nota-orador"><ul>
-        <li>Empezar en <b>Perfectos / Tiempo / Escala lineal</b>: divide y vencerás se dispara mientras la PD casi no despega del eje.</li>
-        <li>Mostrar las barras: en 1001 × 1001 divide y vencerás tarda unas 20 veces lo que la PD. Cambiar el laberinto a 2001 × 2001 para ver solo a los que escalan.</li>
+        <li>Empezar en <b>Perfectos / Tiempo</b> y mostrar las barras: en 1001 × 1001 divide y vencerás tarda unas 20 veces lo que la PD. Cambiar el laberinto a 2001 × 2001 para ver solo a los que escalan.</li>
         <li>Cambiar a <b>Con ciclos</b>: la fuerza bruta desaparece en 41 × 41 y el backtracking en 321 × 321.</li>
-        <li>Pasar a <b>Escala log</b> para leer la complejidad por la pendiente: PD ≈ 1.</li>
         <li>En <b>Casillas exploradas</b>, el voraz explora menos que todos, pero la tabla marca ✗ (camino no óptimo).</li>
       </ul></div>
     </div>
@@ -465,28 +473,46 @@ dialog:modal { position: fixed; }
 </section>
 
 <!-- ====================== §6 Teoría ====================== -->
-<section class="diapo" id="teoria" data-diapo="Complejidad teórica">
+<section class="diapo" id="teoria" data-diapo="Complejidad Big O">
   <div class="hoja">
     <div class="num">§<b>6</b></div>
     <div class="principal">
-      <h2 class="titulo-sec">¿Cuánto crecen las operaciones?</h2>
-      <p class="entradilla">Tiempo estimado en el peor caso, suponiendo mil millones de operaciones por segundo.</p>
-      <div class="deslizador" style="max-width:34rem"><label for="v-teo">Casillas libres <i>V</i> <output id="v-teo-v"></output></label><input id="v-teo" type="range" min="1" max="6" step="0.05" value="2"></div>
-      <div class="barras" id="barras"></div>
+      <h2 class="titulo-sec">Complejidad en notación Big O</h2>
+      <p class="entradilla">Cómo crece el <b>tiempo</b> de cada algoritmo cuando crece el tamaño de entrada <b><i>n</i></b> (el número de casillas del laberinto, <i>n</i> = <i>N</i>·<i>M</i>).</p>
     </div>
     <aside class="margen">
-      <p>Las barras están en escala logarítmica: la barra completa equivale a 10<sup>15</sup> operaciones.</p>
+      <p><strong>Cómo leerla.</strong> Big O ignora constantes: solo importa la <i>forma</i> de la curva. Mientras más rápido sube, peor escala el algoritmo.</p>
+      <p>Las líneas grises son clases de referencia. Cuando varios algoritmos comparten clase, sus colores se alternan sobre la misma línea.</p>
+      <p><strong>Espacio:</strong> los cinco usan O(n) memoria (una tabla, el camino o la pila de recursión), así que no decide al ganador.</p>
     </aside>
     <div class="ancho">
+      <div class="bigo-controles">
+        <div class="conmutador" id="bigo-caso" role="group" aria-label="Caso"><button data-v="peor" aria-pressed="true">Peor caso</button><button data-v="mejor" aria-pressed="false">Mejor caso</button></div>
+        <div class="conmutador" id="bigo-rango" role="group" aria-label="Rango de n"><button data-v="20" aria-pressed="true">n ≤ 20</button><button data-v="100" aria-pressed="false">n ≤ 100</button><button data-v="1000" aria-pressed="false">n ≤ 1000</button></div>
+      </div>
+      <figure>
+        <div class="grafica grafica-bigo"><canvas id="bigo-tiempo" aria-label="Gráfica Big O de la complejidad temporal"></canvas></div>
+        <figcaption id="bigo-pie"></figcaption>
+      </figure>
+      <div class="bigo-lectura">
+        <div class="deslizador"><label for="bigo-n">Marcar un tamaño de entrada <output id="bigo-n-v"></output></label><input id="bigo-n" type="range" min="1" max="20" step="0.5" value="10"></div>
+        <div class="desplazable" style="margin-top:.8rem"><table><caption id="bigo-tabla-cap"></caption><thead><tr><th>Algoritmo</th><th>Clase</th><th>Operaciones (≈)</th><th>Comparado con la PD</th></tr></thead><tbody id="bigo-tabla"></tbody></table></div>
+      </div>
+      <h3 class="subtitulo" id="bigo-porque-t">¿Por qué cada curva?</h3>
+      <ul class="bigo-porque" id="bigo-porque"></ul>
+      <p class="resumen-final" id="bigo-resumen"></p>
       <div class="desplazable">
         <table>
           <caption>Resumen de complejidades.</caption>
-          <thead><tr><th>Estrategia</th><th>Tiempo</th><th>Espacio</th><th>¿Óptimo?</th><th style="text-align:left">Idea clave</th></tr></thead>
+          <thead><tr><th>Estrategia</th><th>Tiempo (peor caso)</th><th>Tiempo (mejor caso)</th><th>Espacio</th><th>¿Óptimo?</th><th style="text-align:left">Idea clave</th></tr></thead>
           <tbody id="tabla-teo"></tbody>
         </table>
       </div>
       <div class="nota-orador"><ul>
-        <li>Mover el control hasta unas 500 000 casillas (el laberinto de 1001 × 1001): la fuerza bruta da una cifra astronómica de años; la PD, menos de un milisegundo de operaciones.</li>
+        <li><b>Peor caso:</b> la fuerza bruta (exponencial) sale de la gráfica casi de inmediato; backtracking y divide y vencerás (n²) poco después; la PD (n) es la recta más baja.</li>
+        <li>Cambiar el rango a <b>n ≤ 1000</b>: el voraz (n log n) se separa cada vez más de la PD a medida que n crece.</li>
+        <li>Mover el marcador y leer la tabla: cuántas operaciones hace cada uno en ese n y cuántas veces más que la PD.</li>
+        <li><b>Mejor caso:</b> casi todos bajan a O(n); solo el voraz baja de n, pero sin garantizar el camino más corto. La PD es O(n) en los dos casos.</li>
         <li>Recordar que el backtracking pasa de exponencial a cuadrático solo gracias a la poda por dominancia.</li>
       </ul></div>
     </div>
@@ -499,7 +525,7 @@ dialog:modal { position: fixed; }
     <div class="num">§<b>7</b></div>
     <div class="principal">
       <h2 class="veredicto-titulo">Gana la <span>programación dinámica</span>.</h2>
-      <p class="entradilla">Es la única estrategia que <b>garantiza el camino más corto</b> con tiempo y memoria <b>O(N·M)</b>: cada subproblema <code>dist[x][y]</code> se calcula una sola vez y se guarda en una tabla.</p>
+      <p class="entradilla">Es la única estrategia que <b>garantiza el camino más corto</b> con tiempo y memoria <b>O(n)</b>: cada subproblema <code>dist[x][y]</code> se calcula una sola vez y se guarda en una tabla.</p>
       <div class="desplazable" id="tabla-veredicto"></div>
     </div>
     <aside class="margen">
@@ -517,11 +543,42 @@ dialog:modal { position: fixed; }
   </div>
 </section>
 
+<!-- ====================== §8 Conclusiones ====================== -->
+<section class="diapo" id="conclusiones" data-diapo="Conclusiones">
+  <div class="hoja">
+    <div class="num">§<b>8</b></div>
+    <div class="ancho">
+      <h2 class="titulo-sec">Conclusiones</h2>
+      <div class="conclusion-final">
+        <span class="etiqueta">En cualquier caso</span>
+        <h3>El algoritmo más óptimo es la <span>programación dinámica</span>.</h3>
+        <p style="margin:0">Cuando se pide el camino más corto, ninguna otra estrategia la supera en ningún tipo de laberinto de los que probamos:</p>
+        <ul class="razones" id="razones-pd"></ul>
+      </div>
+
+      <h3 class="subtitulo">Según el caso favorable</h3>
+      <p class="entradilla" style="margin-bottom:1rem">Cada estrategia tiene un escenario donde rinde bien. Esto es lo que mostraron las mediciones:</p>
+      <div class="desplazable">
+        <table class="casos">
+          <thead><tr><th>Algoritmo</th><th style="text-align:left">Caso favorable</th><th style="text-align:left">Por qué funciona ahí</th><th style="text-align:left">Evidencia medida</th><th style="text-align:left">Cuándo evitarlo</th></tr></thead>
+          <tbody id="tabla-casos"></tbody>
+        </table>
+      </div>
+      <p class="resumen-final">En resumen: para resolver laberintos gigantescos con la mejor complejidad temporal y espacial, garantizando el camino más corto, la respuesta es la <b>programación dinámica</b>, con <b>O(n)</b> en tiempo y en espacio. Las demás estrategias solo compiten en su caso favorable: el voraz cuando basta con un camino cualquiera, y la fuerza bruta o el backtracking cuando el laberinto es pequeño o casi no tiene ciclos.</p>
+      <div class="nota-orador"><ul>
+        <li>Primero la respuesta corta: <b>en cualquier caso, la PD</b>. Leer las razones con sus cifras.</li>
+        <li>Luego la tabla: no hay algoritmo "inútil", cada uno tiene un caso favorable. El voraz es el más rápido si no importa que el camino sea el más corto; la fuerza bruta sirve de referencia para verificar.</li>
+        <li>Cerrar con el resumen y abrir a preguntas.</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
 <footer><div class="hoja">Alejandro Bermudez · Juan David Mosquera · Santiago Restrepo · Análisis y Diseño de Algoritmos 2026-2 · Notebook: <code>laberintos.ipynb</code> · Entrega 1: <code>laberinto.py</code></div></footer>
 
 <!-- ====================== Barra de exposición ====================== -->
 <nav class="barra-expo" aria-label="Herramientas de exposición">
-  <span class="info-expo"><span id="expo-pos">§0 / 7</span><span id="expo-reloj" title="Clic para reiniciar el cronómetro" style="cursor:pointer">00:00</span></span>
+  <span class="info-expo"><span id="expo-pos">§0 / 8</span><span id="expo-reloj" title="Clic para reiniciar el cronómetro" style="cursor:pointer">00:00</span></span>
   <button id="t-expo" aria-pressed="false" title="Modo exposición (P)"><span class="txt">Exponer</span> <kbd>P</kbd></button>
   <button id="t-notas" aria-pressed="false" title="Mostrar el guion (N)"><span class="txt">Guion</span> <kbd>N</kbd></button>
   <button id="t-presentador" title="Vista del presentador en otra ventana (V)"><span class="txt">Presentador</span> <kbd>V</kbd></button>
@@ -548,65 +605,80 @@ dialog:modal { position: fixed; }
 
 <!-- Código Python mostrado en "Las estrategias" (copiado de laberintos.ipynb) -->
 <script type="text/plain" id="py-fb">def fuerza_bruta(tablero, inicio, fin, limite=2_000_000):
-    """Explora TODOS los caminos simples y devuelve (camino_mas_corto, casillas_exploradas)."""
-    mejor = None
-    explorados = 0
-    camino, en_camino = [], set()
+    """Prueba TODOS los caminos y devuelve (camino_mas_corto, casillas_exploradas)."""
+    datos = {"mejor": None, "explorados": 0}   # lo que se recuerda entre llamadas
+    visitado = []
+    for fila in tablero:
+        visitado.append([False] * len(fila))
+    explorar_fb(tablero, inicio, fin, [], visitado, datos, limite)
+    return datos["mejor"], datos["explorados"]
 
-    def explorar(celda):
-        nonlocal mejor, explorados
-        explorados += 1
-        if explorados > limite:
-            raise LimiteExcedido
-        camino.append(celda)
-        en_camino.add(celda)
-        if celda == fin:
-            if mejor is None or len(camino) < len(mejor):
-                mejor = camino[:]          # nueva mejor solución, pero SEGUIMOS buscando
-        else:
-            for v in vecinos(tablero, celda):
-                if v not in en_camino:     # única restricción: no repetir casillas
-                    explorar(v)
-        camino.pop()                       # deshacer para probar la siguiente rama
-        en_camino.remove(celda)
 
-    explorar(inicio)
-    return mejor, explorados</script>
+def explorar_fb(tablero, celda, fin, camino, visitado, datos, limite):
+    datos["explorados"] += 1
+    if datos["explorados"] > limite:
+        raise LimiteExcedido
+    x, y = celda
+    camino.append(celda)                      # avanzar a la casilla
+    visitado[x][y] = True
+    if celda == fin:
+        if datos["mejor"] is None or len(camino) < len(datos["mejor"]):
+            datos["mejor"] = list(camino)     # nueva mejor solución, pero SIGUE buscando
+    else:
+        for v in vecinos(tablero, celda):
+            if not visitado[v[0]][v[1]]:      # única regla: no repetir casillas
+                explorar_fb(tablero, v, fin, camino, visitado, datos, limite)
+    camino.pop()                              # retroceder para probar otra rama
+    visitado[x][y] = False</script>
 <script type="text/plain" id="py-bt">def backtracking_poda(tablero, inicio, fin, limite=5_000_000):
     """Búsqueda recursiva con poda por cota y por dominancia. Devuelve (camino, explorados)."""
-    mejor = None
-    explorados = 0
-    camino = []
-    mejor_llegada = {inicio: 0}
+    datos = {"mejor": None, "explorados": 0}
+    llegada = []                              # llegada[x][y] = menos pasos con que llegamos ahí (-1 = nunca)
+    for fila in tablero:
+        llegada.append([-1] * len(fila))
+    llegada[inicio[0]][inicio[1]] = 0
+    explorar_bt(tablero, inicio, fin, [], llegada, datos, limite)
+    return datos["mejor"], datos["explorados"]
 
-    def explorar(celda):
-        nonlocal mejor, explorados
-        explorados += 1
-        if explorados > limite:
-            raise LimiteExcedido
-        camino.append(celda)
-        if celda == fin:
-            mejor = camino[:]  # gracias a la poda 1, cada solución nueva es más corta que la anterior
-        else:
-            pasos = len(camino)  # pasos que tendríamos al llegar al vecino
-            for v in sorted(vecinos(tablero, celda), key=lambda c: manhattan(c, fin)):
-                if mejor is not None and pasos + manhattan(v, fin) >= len(mejor) - 1:
-                    continue                                  # poda 1: no puede mejorar
-                if mejor_llegada.get(v, float("inf")) <= pasos:
-                    continue                                  # poda 2: ya llegamos mejor
-                mejor_llegada[v] = pasos
-                explorar(v)
-        camino.pop()
 
-    explorar(inicio)
-    return mejor, explorados</script>
+def explorar_bt(tablero, celda, fin, camino, llegada, datos, limite):
+    datos["explorados"] += 1
+    if datos["explorados"] > limite:
+        raise LimiteExcedido
+    camino.append(celda)
+    if celda == fin:
+        datos["mejor"] = list(camino)         # gracias a la poda 1, siempre es más corta que la anterior
+    else:
+        pasos = len(camino)                   # pasos que tendríamos al llegar a un vecino
+        for v in ordenar_por_cercania(vecinos(tablero, celda), fin):
+            vx, vy = v
+            mejor = datos["mejor"]
+            if mejor is not None and pasos + manhattan(v, fin) >= len(mejor) - 1:
+                continue                      # poda 1 (cota): ni en línea recta mejoraría
+            if llegada[vx][vy] != -1 and llegada[vx][vy] <= pasos:
+                continue                      # poda 2 (dominancia): ya llegamos ahí con menos pasos
+            llegada[vx][vy] = pasos
+            explorar_bt(tablero, v, fin, camino, llegada, datos, limite)
+    camino.pop()                              # retroceder
+
+
+def ordenar_por_cercania(casillas, fin):
+    """Ordena las casillas de la más cercana a la más lejana de `fin` (son 4 como mucho)."""
+    ordenadas = []
+    for c in casillas:
+        i = 0
+        while i < len(ordenadas) and manhattan(ordenadas[i], fin) <= manhattan(c, fin):
+            i += 1
+        ordenadas.insert(i, c)
+    return ordenadas</script>
 <script type="text/plain" id="py-gr">def voraz(tablero, inicio, fin):
-    """Greedy best-first: siempre expande la casilla con menor manhattan(c, fin)."""
-    frontera = [(manhattan(inicio, fin), inicio)]
-    padre = {inicio: None}
+    """Greedy best-first: siempre sigue por la casilla que parece más cercana a la meta."""
+    frontera = []                             # montículo (heap) de pares (h, casilla)
+    heapq.heappush(frontera, (manhattan(inicio, fin), inicio))
+    padre = {inicio: None}                    # padre[c] = casilla desde la que llegamos a c
     explorados = 0
-    while frontera:
-        _, celda = heapq.heappop(frontera)   # decisión voraz: la que "parece" mejor
+    while len(frontera) > 0:
+        h, celda = heapq.heappop(frontera)    # decisión voraz: la de menor h
         explorados += 1
         if celda == fin:
             return reconstruir(padre, fin), explorados
@@ -614,82 +686,132 @@ dialog:modal { position: fixed; }
             if v not in padre:
                 padre[v] = celda
                 heapq.heappush(frontera, (manhattan(v, fin), v))
-    return None, explorados</script>
-<script type="text/plain" id="py-dc">def divide_y_venceras(tablero, inicio, fin):
+    return None, explorados
+
+
+def reconstruir(padre, fin):
+    """Sigue los punteros `padre` desde el fin hasta el inicio y voltea la lista."""
+    camino = []
+    celda = fin
+    while celda is not None:
+        camino.append(celda)
+        celda = padre[celda]
+    camino.reverse()
+    return camino</script>
+<script type="text/plain" id="py-dc">def inundar(tablero, origen, radio):
+    """Distancia desde `origen` a cada casilla alcanzable sin pasar de `radio` (None = sin límite)."""
+    dist = {origen: 0}
+    cola = [origen]
+    i = 0
+    while i < len(cola):                      # recorre la cola en orden de llegada
+        celda = cola[i]
+        i += 1
+        if radio is not None and dist[celda] == radio:
+            continue
+        for v in vecinos(tablero, celda):
+            if v not in dist:
+                dist[v] = dist[celda] + 1
+                cola.append(v)
+    return dist
+
+
+def divide_y_venceras(tablero, inicio, fin):
     """Parte A→B en A→M y M→B (M = punto medio de un camino más corto). Devuelve (camino, explorados)."""
-    explorados = 0
-
-    def resolver(a, b, radio):
-        nonlocal explorados
-        if manhattan(a, b) <= 1:                       # caso base: misma casilla o vecinas
-            return [a] if a == b else [a, b]
-        desde_a = inundar(tablero, a, radio)           # DIVIDIR: buscar el punto medio
-        if b not in desde_a:
-            return None
-        d = desde_a[b]
-        desde_b = inundar(tablero, b, d)
-        explorados += len(desde_a) + len(desde_b)
-        mitad = d // 2
-        m = next(c for c, k in desde_a.items() if k == mitad and desde_b.get(c) == d - mitad)
-        del desde_a, desde_b                           # liberar memoria antes de recursar
-        izquierda = resolver(a, m, mitad)              # VENCER: dos subproblemas de tamaño d/2
-        derecha = resolver(m, b, d - mitad)
-        return izquierda[:-1] + derecha                # COMBINAR (M no se repite)
-
     if tablero[inicio[0]][inicio[1]] != LIBRE:
         return None, 0
-    return resolver(inicio, fin, float("inf")), explorados</script>
+    datos = {"explorados": 0}
+    camino = resolver_dv(tablero, inicio, fin, None, datos)
+    return camino, datos["explorados"]
+
+
+def resolver_dv(tablero, a, b, radio, datos):
+    if a == b:                                # caso base: misma casilla
+        return [a]
+    if manhattan(a, b) == 1:                  # caso base: casillas vecinas
+        return [a, b]
+    desde_a = inundar(tablero, a, radio)      # DIVIDIR: distancias desde A ...
+    if b not in desde_a:
+        return None
+    d = desde_a[b]
+    desde_b = inundar(tablero, b, d)          # ... y desde B
+    datos["explorados"] += len(desde_a) + len(desde_b)
+    mitad = d // 2
+    m = None
+    for celda in desde_a:                     # M: a `mitad` pasos de A y a `d - mitad` de B
+        if desde_a[celda] == mitad and celda in desde_b and desde_b[celda] == d - mitad:
+            m = celda
+            break
+    desde_a = None                            # ya no se necesitan: libera memoria antes de recursar
+    desde_b = None
+    izquierda = resolver_dv(tablero, a, m, mitad, datos)       # VENCER: A → M
+    derecha = resolver_dv(tablero, m, b, d - mitad, datos)     #         M → B
+    izquierda.pop()                           # COMBINAR: quita M para no repetirla
+    return izquierda + derecha</script>
 <script type="text/plain" id="py-pd">def programacion_dinamica(tablero, inicio, fin):
-    """Tabulación por capas de dist[x][y] y reconstrucción desde la tabla. Devuelve (camino, explorados)."""
-    n, m = len(tablero), len(tablero[0])
-    dist = [[-1] * m for _ in range(n)]          # -1 = todavía no calculado
+    """Tabla dist[x][y] llenada por capas y camino reconstruido desde la tabla. Devuelve (camino, explorados)."""
     if tablero[inicio[0]][inicio[1]] != LIBRE:
         return None, 0
+    dist = []                                 # dist[x][y] = pasos mínimos desde el inicio (-1 = sin calcular)
+    for fila in tablero:
+        dist.append([-1] * len(fila))
     dist[inicio[0]][inicio[1]] = 0
-    capa, explorados = [inicio], 0
-    while capa and dist[fin[0]][fin[1]] == -1:   # llenar la tabla capa por capa
+    capa = [inicio]
+    explorados = 0
+    while len(capa) > 0 and dist[fin[0]][fin[1]] == -1:     # llenar la tabla capa por capa
         siguiente = []
         for celda in capa:
             explorados += 1
+            x, y = celda
             for vx, vy in vecinos(tablero, celda):
                 if dist[vx][vy] == -1:
-                    dist[vx][vy] = dist[celda[0]][celda[1]] + 1
+                    dist[vx][vy] = dist[x][y] + 1
                     siguiente.append((vx, vy))
         capa = siguiente
     if dist[fin[0]][fin[1]] == -1:
         return None, explorados
-    camino = [fin]                                # reconstrucción leyendo la tabla
-    while camino[-1] != inicio:
-        x, y = camino[-1]
-        camino.append(next(v for v in vecinos(tablero, (x, y)) if dist[v[0]][v[1]] == dist[x][y] - 1))
-    return camino[::-1], explorados</script>
+    camino = [fin]                            # reconstrucción: desde la meta, ir al vecino con un paso menos
+    celda = fin
+    while celda != inicio:
+        x, y = celda
+        for v in vecinos(tablero, celda):
+            if dist[v[0]][v[1]] == dist[x][y] - 1:
+                celda = v
+                break
+        camino.append(celda)
+    camino.reverse()
+    return camino, explorados</script>
 
 <script>
 "use strict";
 // ======================= Datos de cada estrategia =======================
 const ALG = [
   { id: "fb", corto: "FB", nombre: "Fuerza bruta", py: "Fuerza bruta", color: "#b5442e",
-    tiempo: "O(4^(N·M))", espacio: "O(N·M)", optimo: true,
+    tiempo: "O(4ⁿ)", mejor: "O(n)", espacio: "O(n)", optimo: true,
+    conocido: "Búsqueda exhaustiva (<i>exhaustive search</i>): enumera todos los caminos simples con una búsqueda en profundidad (DFS).",
     idea: "Genera <b>todos</b> los caminos simples desde el inicio y se queda con el más corto. No descarta nada: aunque ya tenga una solución, sigue probando todas las demás.",
     analogia: "Como recorrer a pie cada ruta posible de la ciudad antes de decidir cuál era la más corta.",
     balance: [["mas", "Fácil de entender y siempre correcta."], ["menos", "Exponencial: con ciclos, el número de caminos explota."], ["menos", "No termina ni en 41 × 41 con ciclos."]] },
   { id: "bt", corto: "BT", nombre: "Backtracking con poda", py: "Backtracking con poda", color: "#b07d12",
-    tiempo: "O((N·M)²)", espacio: "O(N·M)", optimo: true,
+    tiempo: "O(n²)", mejor: "O(n)", espacio: "O(n)", optimo: true,
+    conocido: "Ramificación y poda (<i>branch and bound</i>) sobre una búsqueda en profundidad, con poda por dominancia.",
     idea: "La misma búsqueda recursiva, pero <b>antes de entrar a una rama</b> pregunta si vale la pena. <b>Poda por cota:</b> si pasos + distancia Manhattan ≥ la mejor solución, la descarta. <b>Poda por dominancia:</b> si ya llegó a esa casilla con menos pasos, también la descarta.",
     analogia: "Un explorador que abandona un pasillo en cuanto sabe que ya llegó a ese punto por un camino más corto.",
     balance: [["mas", "Pasa de exponencial a polinomial."], ["mas", "Encuentra el óptimo."], ["menos", "Sigue siendo cuadrática y usa recursión profunda."]] },
   { id: "gr", corto: "VZ", nombre: "Voraz", py: "Voraz (Greedy)", color: "#4f7a3a",
-    tiempo: "O(V·log V)", espacio: "O(V)", optimo: false,
+    tiempo: "O(n log n)", mejor: "O(√n log n)", espacio: "O(n)", optimo: false,
+    conocido: "Búsqueda voraz «primero el mejor» (<i>Greedy Best-First Search</i>) con la distancia Manhattan como heurística. <b>No es Dijkstra:</b> Dijkstra también es voraz, pero elige por la distancia ya recorrida y por eso sí es óptimo (aquí equivale a la PD). A* combina las dos ideas.",
     idea: "Siempre expande la casilla de la frontera que <b>parece</b> más cercana a la meta (menor distancia Manhattan), sin importar lo que costó llegar a ella. Usa una cola de prioridad (<i>heap</i>).",
     analogia: "Caminar siempre hacia donde se ve la salida, aunque al final haya un muro y toque devolverse.",
     balance: [["mas", "Rapidísimo: explora muy pocas casillas."], ["menos", "<b>No garantiza</b> el camino más corto."], ["menos", "Una buena decisión local puede ser una mala decisión global."]] },
   { id: "dc", corto: "DV", nombre: "Divide y vencerás", py: "Divide y vencerás", color: "#2f5d8a",
-    tiempo: "O(d·log d) típico", espacio: "O(V)", optimo: true,
+    tiempo: "O(n²)", mejor: "O(n)", espacio: "O(n)", optimo: true,
+    conocido: "Recursión por punto medio: la idea de <b>Hirschberg</b> (1975) aplicada a caminos, como en el <i>Divide-and-Conquer Frontier Search</i> de Korf (1999). Es el mismo esquema del teorema de Savitch.",
     idea: "El camino más corto A→B pasa por un <b>punto medio M</b>. Primero lo encuentra (<b>dividir</b>), luego resuelve A→M y M→B recursivamente (<b>vencer</b>) y une las dos mitades (<b>combinar</b>). La recurrencia T(d) = 2T(d/2) + Θ(d) da Θ(d log d) por el Teorema Maestro.",
     analogia: "Planear un viaje largo eligiendo primero la ciudad intermedia y luego cada mitad por separado.",
-    balance: [["mas", "Óptimo, con recursión de solo log d niveles."], ["menos", "Los subproblemas <b>se solapan</b>: vuelve a recorrer las mismas zonas."], ["menos", "En salas abiertas llega a O(V·d)."]] },
+    balance: [["mas", "Óptimo, con recursión de solo log d niveles."], ["menos", "Los subproblemas <b>se solapan</b>: vuelve a recorrer las mismas zonas."], ["menos", "En salas abiertas llega a O(n²)."]] },
   { id: "pd", corto: "PD", nombre: "Programación dinámica", py: "Programación dinámica", color: "#7a3b69",
-    tiempo: "O(N·M)", espacio: "O(N·M)", optimo: true,
+    tiempo: "O(n)", mejor: "O(n)", espacio: "O(n)", optimo: true,
+    conocido: "Búsqueda en anchura (<b>BFS</b>) por capas, conocida en laberintos como <b>algoritmo de Lee</b> (1961). Con pasos de costo 1 hace exactamente lo mismo que <b>Dijkstra</b>.",
     idea: "Llena una tabla <code>dist[x][y]</code> con los pasos mínimos desde el inicio, usando la recurrencia <code>dist[v] = 1 + min(dist[u])</code> sobre sus vecinos. La llena <b>por capas</b> (0, 1, 2, …), así que cada casilla se calcula <b>una sola vez</b>. Al final reconstruye el camino leyendo la tabla hacia atrás.",
     analogia: "Una piedra que cae en un estanque: cada onda es una capa de la tabla y llega a todas las casillas a la vez.",
     balance: [["mas", "Óptima <b>y</b> lineal en tiempo y memoria."], ["mas", "Ningún subproblema se recalcula."], ["info", "Usamos tabulación: con ciclos, la memoización recursiva entraría en un bucle."]] },
@@ -1086,9 +1208,10 @@ function mostrarEstrategia(i) {
   document.querySelectorAll("#indice button").forEach((b, j) => b.setAttribute("aria-selected", i === j));
   const d = $("#detalle"); d.style.setProperty("--c", a.color);
   d.innerHTML = `<div class="par">
-    <div><span class="etiqueta">Estrategia ${i + 1} de 5</span><h3>${a.nombre}</h3><p>${a.idea}</p>
+    <div><span class="etiqueta">Estrategia ${i + 1} de 5</span><h3>${a.nombre}</h3>
+      <p class="conocido"><span class="etiqueta" style="display:inline;margin-right:.4rem">Nombre conocido</span>${a.conocido}</p><p>${a.idea}</p>
       <p class="analogia">${a.analogia}</p>
-      <div class="ficha"><div><span class="etiqueta">Tiempo</span><b>${a.tiempo}</b></div><div><span class="etiqueta">Espacio</span><b>${a.espacio}</b></div><div><span class="etiqueta">¿Óptimo?</span><b>${a.optimo ? "Sí" : "No"}</b></div></div>
+      <div class="ficha"><div><span class="etiqueta">Peor caso</span><b>${a.tiempo}</b></div><div><span class="etiqueta">Mejor caso</span><b>${a.mejor}</b></div><div><span class="etiqueta">¿Óptimo?</span><b>${a.optimo ? "Sí" : "No"}</b></div></div>
       <ul class="balance">${a.balance.map(([c, t]) => `<li class="${c}">${t}</li>`).join("")}</ul></div>
     <pre><code>${resaltar(document.getElementById("py-" + a.id).textContent)}</code></pre></div>`;
 }
@@ -1107,7 +1230,7 @@ const LEYENDA_LAB = {
   fb: "<b>Fig. 3.</b> Tono claro: casillas visitadas. Número: veces que entró a esa casilla, si fue más de una (trabajo repetido). Línea de color: <code>camino</code>, la pila de recursión. Línea negra: <code>mejor</code>.",
   bt: "<b>Fig. 3.</b> Tono claro: casillas visitadas. Número: veces que entró, si fue más de una. ✕: vecino podado. Línea de color: <code>camino</code>. Línea negra: <code>mejor</code>.",
   gr: "<b>Fig. 3.</b> Número: h = <code>manhattan(v, fin)</code>. Recuadro de color: casilla dentro de <code>frontera</code>. Línea de color: camino hasta la casilla que acaba de sacar, siguiendo <code>padre</code>.",
-  dc: "<b>Fig. 3.</b> A y B: argumentos de la llamada actual a <code>resolver</code>; M: el punto medio <code>m</code>. Sombreado: la inundación en curso. Número: veces que la casilla fue inundada, si fue más de una. Línea de color: último tramo combinado.",
+  dc: "<b>Fig. 3.</b> A y B: argumentos de la llamada actual a <code>resolver_dv</code>; M: el punto medio <code>m</code>. Sombreado: la inundación en curso. Número: veces que la casilla fue inundada, si fue más de una. Línea de color: último tramo combinado.",
   pd: "<b>Fig. 3.</b> Número: <code>dist[x][y]</code>. Recuadro de color: casillas de <code>siguiente</code> (la capa nueva). Línea de color: <code>camino</code> mientras se reconstruye.",
 };
 let labL = null, labAlg = 4, traza = [], pasoLab = 0, labReloj = null, labSemilla = 1, labOptimo = 0, labLineas = [];
@@ -1130,18 +1253,18 @@ function hacerTraza(id, L) {
   if (id === "fb" || id === "bt") {
     const camino = [], en = new Uint8Array(n2), visitas = new Uint16Array(n2), llegada = new Float64Array(n2).fill(Infinity);
     let mejor = null, explorados = 0;
-    vars = () => [["camino", lista(camino)], ["mejor", mejor ? lista(mejor) : "None"], ["explorados", explorados]];
-    pila = () => [...camino.map(c => `explorar(celda=${T(c)})`).reverse(), raiz];
+    vars = () => [["camino", lista(camino)], ['datos["mejor"]', mejor ? lista(mejor) : "None"], ['datos["explorados"]', explorados]];
+    pila = () => [...camino.map(c => `${id === "fb" ? "explorar_fb" : "explorar_bt"}(celda=${T(c)})`).reverse(), raiz];
     llegada[L.ini] = 0;
     const explorar = (c) => {
       explorados++; camino.push(c); en[c] = 1; visitas[c]++;
-      add({ l: ["camino.append(celda)"], t: `Entra a ${T(c)} y la agrega al camino (${ps(camino.length - 1)} desde el inicio).`, d: [[c, "v"]], num: [[c, visitas[c]]], cam: camino.slice(), act: c, v: [["celda", T(c)]] });
+      add({ l: id === "fb" ? ["camino.append(celda)", "visitado[x][y] = True"] : ["camino.append(celda)"], t: `Entra a ${T(c)} y la agrega al camino (${ps(camino.length - 1)} desde el inicio).`, d: [[c, "v"]], num: [[c, visitas[c]]], cam: camino.slice(), act: c, v: [["celda", T(c)]] });
       if (c === L.fin) {
         if (!mejor || camino.length < mejor.length) {
           mejor = camino.slice();
-          add({ l: ["mejor = camino[:]"], t: id === "fb" ? `¡Llegó a la meta con ${ps(mejor.length - 1)}! Es el mejor hasta ahora, pero la fuerza bruta <b>no se detiene</b>: aún debe probar todos los demás caminos.`
+          add({ l: ['datos["mejor"] = list(camino)'], t: id === "fb" ? `¡Llegó a la meta con ${ps(mejor.length - 1)}! Es el mejor hasta ahora, pero la fuerza bruta <b>no se detiene</b>: aún debe probar todos los demás caminos.`
             : `Nueva mejor solución: ${ps(mejor.length - 1)}. Desde ahora la poda 1 corta cualquier rama que no pueda bajar de ${mejor.length - 1}.`, mejor: mejor.slice(), act: c, v: [["celda", T(c)], ["len(mejor) - 1", mejor.length - 1]] });
-        } else add({ l: ["if mejor is None or len(camino) < len(mejor):"], t: `Llegó otra vez a la meta, ahora con ${ps(camino.length - 1)}. Ya tenía un camino de ${mejor.length - 1}, así que no lo guarda.`, act: c, v: [["celda", T(c)], ["len(camino) - 1", camino.length - 1], ["len(mejor) - 1", mejor.length - 1]] });
+        } else add({ l: ['if datos["mejor"] is None or len(camino) < len(datos["mejor"]):'], t: `Llegó otra vez a la meta, ahora con ${ps(camino.length - 1)}. Ya tenía un camino de ${mejor.length - 1}, así que no lo guarda.`, act: c, v: [["celda", T(c)], ["len(camino) - 1", camino.length - 1], ["len(mejor) - 1", mejor.length - 1]] });
       } else if (id === "fb") {
         for (const v of L.ady[c]) if (!en[v]) explorar(v);
       } else {
@@ -1150,25 +1273,25 @@ function hacerTraza(id, L) {
           if (v === padre) continue;   // en Python también se descarta (poda 2); aquí se omite para no llenar la demostración
           const h = L.h(v, L.fin), base = [["celda", T(c)], ["pasos", pasos], ["v", T(v)], ["manhattan(v, fin)", h]];
           if (mejor && pasos + h >= mejor.length - 1) {
-            add({ l: ["if mejor is not None and pasos", "# poda 1"], t: `Poda 1 (cota) en ${T(v)}: pasos + manhattan = ${pasos} + ${h} = ${pasos + h} ≥ ${mejor.length - 1}. Ni yendo en línea recta mejoraría, así que <code>continue</code>.`, d: [[v, "x"]], act: c, v: [...base, ["len(mejor) - 1", mejor.length - 1]] });
+            add({ l: ["if mejor is not None and pasos + manhattan(v, fin)", "# poda 1"], t: `Poda 1 (cota) en ${T(v)}: pasos + manhattan = ${pasos} + ${h} = ${pasos + h} ≥ ${mejor.length - 1}. Ni yendo en línea recta mejoraría, así que <code>continue</code>.`, d: [[v, "x"]], act: c, v: [...base, ["len(mejor) - 1", mejor.length - 1]] });
             continue;
           }
           if (llegada[v] <= pasos) {
-            add({ l: ["mejor_llegada.get(v", "# poda 2"], t: `Poda 2 (dominancia) en ${T(v)}: <code>mejor_llegada[v]</code> = ${llegada[v]} ≤ ${pasos}. Ya se llegó ahí con menos pasos, así que <code>continue</code>.`, d: [[v, "x"]], act: c, v: [...base, ["mejor_llegada.get(v)", llegada[v]]] });
+            add({ l: ["if llegada[vx][vy] != -1 and llegada[vx][vy] <= pasos:", "# poda 2"], t: `Poda 2 (dominancia) en ${T(v)}: <code>llegada[vx][vy]</code> = ${llegada[v]} ≤ ${pasos}. Ya se llegó ahí con menos pasos, así que <code>continue</code>.`, d: [[v, "x"]], act: c, v: [...base, ["llegada[vx][vy]", llegada[v]]] });
             continue;
           }
-          add({ l: ["mejor_llegada[v] = pasos", "explorar(v)"], t: `${T(v)} pasa las dos podas: guarda <code>mejor_llegada[v] = ${pasos}</code> y llama a <code>explorar(v)</code>.`, act: c, v: [...base, ["mejor_llegada.get(v)", llegada[v] === Infinity ? "inf" : llegada[v]]] });
+          add({ l: ["llegada[vx][vy] = pasos", "explorar_bt(tablero, v, fin"], t: `${T(v)} pasa las dos podas: guarda <code>llegada[vx][vy] = ${pasos}</code> y llama a <code>explorar_bt</code> con ese vecino.`, act: c, v: [...base, ["llegada[vx][vy]", llegada[v] === Infinity ? -1 : llegada[v]]] });
           llegada[v] = pasos;
           explorar(v);
         }
       }
       camino.pop(); en[c] = 0;
-      add({ l: ["camino.pop()"], t: `Retrocede: <code>camino.pop()</code> quita ${T(c)} para probar la siguiente rama.`, cam: camino.slice(), act: camino.length ? camino[camino.length - 1] : -1, v: [["celda", T(c)]] });
+      add({ l: id === "fb" ? ["camino.pop()", "visitado[x][y] = False"] : ["camino.pop()"], t: `Retrocede: <code>camino.pop()</code> quita ${T(c)} para probar la siguiente rama.`, cam: camino.slice(), act: camino.length ? camino[camino.length - 1] : -1, v: [["celda", T(c)]] });
     };
     cierre(() => {
       explorar(L.ini);
-      add({ l: ["return mejor, explorados"], t: id === "fb" ? `Terminó: probó <b>todos</b> los caminos (${explorados} llamadas a <code>explorar</code>) y devuelve el más corto, de ${ps(mejor.length - 1)}.`
-        : `Terminó con ${explorados} llamadas a <code>explorar</code>. Devuelve el camino de ${ps(mejor.length - 1)}, el óptimo.`, cam: [], mejor, act: -1 });
+      add({ l: ['return datos["mejor"], datos["explorados"]'], t: id === "fb" ? `Terminó: probó <b>todos</b> los caminos (${explorados} llamadas a <code>${id === "fb" ? "explorar_fb" : "explorar_bt"}</code>) y devuelve el más corto, de ${ps(mejor.length - 1)}.`
+        : `Terminó con ${explorados} llamadas a <code>${id === "fb" ? "explorar_fb" : "explorar_bt"}</code>. Devuelve el camino de ${ps(mejor.length - 1)}, el óptimo.`, cam: [], mejor, act: -1 });
     });
   }
 
@@ -1181,7 +1304,7 @@ function hacerTraza(id, L) {
     vars = () => [["frontera", heapStr()], ["len(padre)", nPadre], ["explorados", explorados]];
     cierre(() => {
       padre[L.ini] = -1; nPadre = 1; frontera.push([L.h(L.ini, L.fin), L.ini]);
-      add({ l: ["frontera = [(manhattan(inicio, fin), inicio)]"], t: `La frontera empieza solo con el inicio, con h = manhattan(inicio, fin) = ${L.h(L.ini, L.fin)}.`, d: [[L.ini, "f"]], num: [[L.ini, L.h(L.ini, L.fin)]], act: L.ini });
+      add({ l: ["heapq.heappush(frontera, (manhattan(inicio, fin), inicio))"], t: `La frontera empieza solo con el inicio, con h = manhattan(inicio, fin) = ${L.h(L.ini, L.fin)}.`, d: [[L.ini, "f"]], num: [[L.ini, L.h(L.ini, L.fin)]], act: L.ini });
       while (frontera.length) {
         let j = 0;
         frontera.forEach((x, i) => { if (x[0] < frontera[j][0] || (x[0] === frontera[j][0] && x[1] < frontera[j][1])) j = i; });   // mismo orden que heapq con tuplas (h, (x, y))
@@ -1196,7 +1319,7 @@ function hacerTraza(id, L) {
         const nuevos = L.ady[c].filter(v => padre[v] === -2);
         nuevos.forEach(v => { padre[v] = c; nPadre++; frontera.push([L.h(v, L.fin), v]); });
         add(nuevos.length
-          ? { l: ["padre[v] = celda", "heapq.heappush"], t: `Agrega al heap ${nuevos.map(v => `(${L.h(v, L.fin)}, ${T(v)})`).join(", ")}.`, d: nuevos.map(v => [v, "f"]), num: nuevos.map(v => [v, L.h(v, L.fin)]), act: c, v: [["celda", T(c)], ["vecinos nuevos", lista(nuevos)]] }
+          ? { l: ["padre[v] = celda", "heapq.heappush(frontera, (manhattan(v, fin), v))"], t: `Agrega al heap ${nuevos.map(v => `(${L.h(v, L.fin)}, ${T(v)})`).join(", ")}.`, d: nuevos.map(v => [v, "f"]), num: nuevos.map(v => [v, L.h(v, L.fin)]), act: c, v: [["celda", T(c)], ["vecinos nuevos", lista(nuevos)]] }
           : { l: ["for v in vecinos(tablero, celda):"], t: `${T(c)} no tiene vecinos nuevos (todos ya están en <code>padre</code>): es un callejón sin salida.`, act: c, v: [["celda", T(c)]] });
       }
     });
@@ -1205,9 +1328,9 @@ function hacerTraza(id, L) {
   if (id === "dc") {
     const marcos = [], visitas = new Uint16Array(n2);
     let explorados = 0, local = {};
-    const R = (r) => r === Infinity ? "inf" : r;
-    vars = () => [...Object.entries(local), ["explorados", explorados]];
-    pila = () => [...marcos.map(([a, b, r]) => `resolver(a=${T(a)}, b=${T(b)}, radio=${R(r)})`).reverse(), raiz];
+    const R = (r) => r === Infinity ? "None" : r;
+    vars = () => [...Object.entries(local), ['datos["explorados"]', explorados]];
+    pila = () => [...marcos.map(([a, b, r]) => `resolver_dv(a=${T(a)}, b=${T(b)}, radio=${R(r)})`).reverse(), raiz];
     const inundar = (o, radio) => {
       const dist = new Map([[o, 0]]), cola = [o];
       for (let i = 0; i < cola.length; i++) {
@@ -1221,10 +1344,10 @@ function hacerTraza(id, L) {
     const resolver = (a, b, radio) => {
       marcos.push([a, b, radio]);
       local = { a: T(a), b: T(b), radio: R(radio) };
-      add({ l: ["def resolver(a, b, radio):"], t: `Nueva llamada: <code>resolver</code> de A = ${T(a)} a B = ${T(b)}.`, ab: [a, b], m: -1, reg: [], act: -1 });
+      add({ l: ["def resolver_dv(tablero, a, b, radio, datos):"], t: `Nueva llamada: <code>resolver_dv</code> de A = ${T(a)} a B = ${T(b)}.`, ab: [a, b], m: -1, reg: [], act: -1 });
       if (L.h(a, b) <= 1) {
         const r = a === b ? [a] : [a, b];
-        add({ l: ["return [a] if a == b else [a, b]"], t: a === b ? "A y B son la misma casilla: caso base." : "A y B son vecinas (<code>manhattan(a, b) <= 1</code>): caso base, el camino es directo.", cam: r, v: [["manhattan(a, b)", L.h(a, b)]] });
+        add({ l: a === b ? ["if a == b:", "return [a]"] : ["if manhattan(a, b) == 1:", "return [a, b]"], t: a === b ? "A y B son la misma casilla: caso base." : "A y B son vecinas (<code>manhattan(a, b) == 1</code>): caso base, el camino es directo.", cam: r, v: [["manhattan(a, b)", L.h(a, b)]] });
         marcos.pop(); return r;
       }
       const da = inundar(a, radio), ka = [...da.keys()], d = da.get(b);
@@ -1233,24 +1356,24 @@ function hacerTraza(id, L) {
       const db = inundar(b, d), kb = [...db.keys()];
       explorados += ka.length + kb.length;
       local = { ...local, "len(desde_b)": kb.length };
-      add({ l: ["desde_b = inundar(tablero, b, d)", "explorados += len(desde_a) + len(desde_b)"], t: `Inunda desde B hasta distancia ${d} (${kb.length} casillas). Varias ya se habían inundado en otras llamadas: <b>trabajo repetido</b>.`, reg: kb, ...marcar(kb) });
+      add({ l: ["desde_b = inundar(tablero, b, d)", 'datos["explorados"] += len(desde_a) + len(desde_b)'], t: `Inunda desde B hasta distancia ${d} (${kb.length} casillas). Varias ya se habían inundado en otras llamadas: <b>trabajo repetido</b>.`, reg: kb, ...marcar(kb) });
       const mitad = d >> 1;
       let m = -1;
       for (const [c, k] of da) if (k === mitad && db.get(c) === d - mitad) { m = c; break; }
       local = { ...local, mitad, m: T(m) };
-      add({ l: ["mitad = d // 2", "m = next("], t: `Punto medio: <code>m</code> = ${T(m)}, a ${ps(mitad)} de A y a ${ps(d - mitad)} de B.`, m, reg: [] });
-      add({ l: ["izquierda = resolver(a, m, mitad)", "derecha = resolver(m, b, d - mitad)"], t: `Vencer: dos llamadas recursivas más pequeñas, A → M (${ps(mitad)}) y M → B (${ps(d - mitad)}).` });
+      add({ l: ["mitad = d // 2", "for celda in desde_a:", "m = celda"], t: `Punto medio: <code>m</code> = ${T(m)}, a ${ps(mitad)} de A y a ${ps(d - mitad)} de B.`, m, reg: [] });
+      add({ l: ["izquierda = resolver_dv(tablero, a, m, mitad, datos)", "derecha = resolver_dv(tablero, m, b, d - mitad, datos)"], t: `Vencer: dos llamadas recursivas más pequeñas, A → M (${ps(mitad)}) y M → B (${ps(d - mitad)}).` });
       const izq = resolver(a, m, mitad), der = resolver(m, b, d - mitad);
       marcos.pop();
       const r = izq.slice(0, -1).concat(der);
       local = { a: T(a), b: T(b), radio: R(radio), d, mitad, m: T(m), "len(izquierda)": izq.length, "len(derecha)": der.length };
-      add({ l: ["return izquierda[:-1] + derecha"], t: `Combinar: une A → M y M → B. El tramo de ${T(a)} a ${T(b)} queda con ${ps(r.length - 1)}.`, ab: [a, b], m, cam: r });
+      add({ l: ["izquierda.pop()", "return izquierda + derecha"], t: `Combinar: quita M repetida y une A → M y M → B. El tramo de ${T(a)} a ${T(b)} queda con ${ps(r.length - 1)}.`, ab: [a, b], m, cam: r });
       return r;
     };
     cierre(() => {
       const r = resolver(L.ini, L.fin, Infinity);
       local = {};
-      add({ l: ["return resolver(inicio, fin, float(\"inf\")), explorados"], t: `Terminó: camino de ${ps(r.length - 1)} (óptimo), con ${explorados} casillas inundadas en total. Una tabla habría evitado repetir esas inundaciones.`, mejor: r, cam: [], ab: null, m: -1, act: -1 });
+      add({ l: ['return camino, datos["explorados"]'], t: `Terminó: camino de ${ps(r.length - 1)} (óptimo), con ${explorados} casillas inundadas en total. Una tabla habría evitado repetir esas inundaciones.`, mejor: r, cam: [], ab: null, m: -1, act: -1 });
     });
   }
 
@@ -1260,18 +1383,18 @@ function hacerTraza(id, L) {
     vars = () => [["capa", lista(capa)], ["siguiente", lista(siguiente)], ["explorados", explorados], ...(camino ? [["camino", lista(camino)]] : [])];
     cierre(() => {
       dist[L.ini] = 0;
-      add({ l: ["dist[inicio[0]][inicio[1]] = 0", "capa, explorados = [inicio], 0"], t: `<code>dist[inicio] = 0</code> y la primera capa es solo el inicio. Las demás casillas valen -1 (sin calcular).`, num: [[L.ini, 0]], d: [[L.ini, "f"]], act: L.ini });
+      add({ l: ["dist[inicio[0]][inicio[1]] = 0", "capa = [inicio]"], t: `<code>dist[inicio] = 0</code> y la primera capa es solo el inicio. Las demás casillas valen -1 (sin calcular).`, num: [[L.ini, 0]], d: [[L.ini, "f"]], act: L.ini });
       let k = 0;
       while (capa.length && dist[L.fin] === -1) {
         siguiente = [];
-        add({ l: ["while capa and dist[fin[0]][fin[1]] == -1:", "siguiente = []"], t: `Nueva capa: ${capa.length === 1 ? "1 casilla" : `${capa.length} casillas`} con dist = ${k}. Solo hace falta mirar sus vecinos.`, act: -1, v: [["k (dist de la capa)", k]] });
+        add({ l: ["while len(capa) > 0 and dist[fin[0]][fin[1]] == -1:", "siguiente = []"], t: `Nueva capa: ${capa.length === 1 ? "1 casilla" : `${capa.length} casillas`} con dist = ${k}. Solo hace falta mirar sus vecinos.`, act: -1, v: [["k (dist de la capa)", k]] });
         for (const c of capa) {
           explorados++;
           const nuevos = L.ady[c].filter(v => dist[v] === -1);
           nuevos.forEach(v => { dist[v] = k + 1; siguiente.push(v); });
           const v = [["celda", T(c)], ["dist[celda]", k], ["vecinos con dist == -1", lista(nuevos)]];
           add(nuevos.length
-            ? { l: ["dist[vx][vy] = dist[celda[0]][celda[1]] + 1", "siguiente.append((vx, vy))"], t: `Desde ${T(c)}: <code>dist</code> = ${k} + 1 = ${k + 1} para ${nuevos.map(T).join(", ")}.`, d: [[c, "v"], ...nuevos.map(w => [w, "f"])], num: nuevos.map(w => [w, k + 1]), act: c, v }
+            ? { l: ["dist[vx][vy] = dist[x][y] + 1", "siguiente.append((vx, vy))"], t: `Desde ${T(c)}: <code>dist</code> = ${k} + 1 = ${k + 1} para ${nuevos.map(T).join(", ")}.`, d: [[c, "v"], ...nuevos.map(w => [w, "f"])], num: nuevos.map(w => [w, k + 1]), act: c, v }
             : { l: ["if dist[vx][vy] == -1:"], t: `Desde ${T(c)}: todos sus vecinos ya tienen <code>dist</code>; no recalcula nada.`, d: [[c, "v"]], act: c, v });
         }
         capa = siguiente; k++;
@@ -1282,9 +1405,9 @@ function hacerTraza(id, L) {
       while (camino[camino.length - 1] !== L.ini) {
         const c = camino[camino.length - 1], v = L.ady[c].find(w => dist[w] === dist[c] - 1);
         camino.push(v);
-        add({ l: ["camino.append(next("], t: `Desde ${T(c)} (dist ${dist[c]}) va al vecino ${T(v)}, que tiene dist ${dist[v]}.`, cam: camino.slice(), act: v, v: [["(x, y)", T(c)], ["dist[x][y]", dist[c]]] });
+        add({ l: ["if dist[v[0]][v[1]] == dist[x][y] - 1:", "camino.append(celda)"], t: `Desde ${T(c)} (dist ${dist[c]}) va al vecino ${T(v)}, que tiene dist ${dist[v]}.`, cam: camino.slice(), act: v, v: [["celda", T(c)], ["dist[x][y]", dist[c]]] });
       }
-      add({ l: ["return camino[::-1], explorados"], t: `Listo: devuelve <code>camino[::-1]</code>, de ${ps(dist[L.fin])}. Cada casilla se calculó <b>una sola vez</b>.`, mejor: camino.slice().reverse(), cam: [], act: -1 });
+      add({ l: ["camino.reverse()", "return camino, explorados"], t: `Listo: voltea <code>camino</code> con <code>reverse()</code> y lo devuelve, de ${ps(dist[L.fin])}. Cada casilla se calculó <b>una sola vez</b>.`, mejor: camino.slice().reverse(), cam: [], act: -1 });
     });
   }
   return ev;
@@ -1313,7 +1436,7 @@ function elegirAlgLab(i) {
   const codigo = document.getElementById("py-" + a.id).textContent;
   labLineas = codigo.split("\n");
   $("#lab-codigo").innerHTML = resaltar(codigo).split("\n").map((l, j) => `<div class="ln"><span class="nl">${j + 1}</span><span>${l || " "}</span></div>`).join("");
-  $("#lab-funcion").textContent = codigo.match(/def (\w+)/)[1] + "()";
+  $("#lab-funcion").textContent = { fb: "fuerza_bruta()", bt: "backtracking_poda()", gr: "voraz()", dc: "divide_y_venceras()", pd: "programacion_dinamica()" }[a.id];
   $("#lab-porque").innerHTML = PORQUE[a.id];
   $("#lab-leyenda").innerHTML = LEYENDA_LAB[a.id];
   $("#lab-barra").max = traza.length - 1;
@@ -1396,39 +1519,16 @@ function reproducirLab() {
 }
 
 // ======================= §5 Resultados =======================
-let familia = "perfecto", metrica = "ms", escalaEje = "lineal", grafica = null;
+let familia = "perfecto", metrica = "ms";
 const NOMBRE_METRICA = { ms: "Tiempo (ms)", kb: "Memoria pico (KB)", explorados: "Casillas exploradas" };
-const potencia10 = v => Number.isInteger(Math.log10(v)) ? fmt(v) : "";   // solo 1, 10, 100, … en los ejes log
 
 function dibujarResultados() {
   const R = window.RESULTADOS;
   if (!R) {
-    $("#resultados .grafica").outerHTML = `<p class="aviso">No se encontró <code>resultados.js</code>. Ejecuta el notebook <code>laberintos.ipynb</code> (sección 12) para generarlo.</p>`;
+    $("#tabla").innerHTML = `<p class="aviso">No se encontró <code>resultados.js</code>. Ejecuta el notebook <code>laberintos.ipynb</code> (sección 12) para generarlo.</p>`;
     return;
   }
   const filas = R.familias[familia];
-  const datasets = ALG.map(a => ({
-    label: `${a.corto} · ${a.nombre}`, borderColor: a.color, backgroundColor: a.color, borderWidth: a.id === "pd" ? 3 : 1.8, pointRadius: 3.5,
-    pointStyle: { fb: "rect", bt: "triangle", gr: "circle", dc: "rectRot", pd: "rectRounded" }[a.id],
-    data: filas[a.py].filter(d => d.estado === "ok" && d[metrica] != null).map(d => ({ x: d.libres, y: Math.max(d[metrica], 1e-3) })),
-  }));
-  if (window.Chart) {
-    if (grafica) grafica.destroy();
-    Chart.defaults.color = "#6b665c"; Chart.defaults.font.family = "IBM Plex Sans";
-    const eje = (texto) => ({ ...(escalaEje === "log" ? { type: "logarithmic", ticks: { callback: potencia10 } } : { type: "linear", beginAtZero: true, ticks: { callback: v => fmt(v) } }),
-      title: { display: true, text: `${texto} (escala ${escalaEje === "log" ? "log" : "lineal"})` }, grid: { color: "#e3ddcf" }, border: { color: "#1d1c1a" } });
-    grafica = new Chart($("#grafica"), {
-      type: "line", data: { datasets },
-      options: {
-        maintainAspectRatio: false, animation: reducido ? false : { duration: 400 }, interaction: { mode: "nearest", intersect: false },
-        scales: { x: eje("Casillas libres V"), y: eje(NOMBRE_METRICA[metrica]) },
-        plugins: { legend: { labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(+c.parsed.y.toPrecision(4))}` } } },
-      },
-    });
-  } else {
-    $("#resultados .grafica").innerHTML = `<p class="aviso">No se pudo cargar Chart.js (¿sin conexión?). La tabla de abajo tiene todos los datos.</p>`;
-  }
-  $("#fig-grafica").innerHTML = `<b>Fig. 2.</b> ${NOMBRE_METRICA[metrica]} frente al número de casillas libres, en laberintos ${familia === "perfecto" ? "perfectos" : "con 10 % de ciclos"}.`;
   const celda = (d) => {
     if (d.estado === "limite") return `<td style="color:var(--fb)">límite</td>`;
     if (d.estado === "omitido") return `<td style="color:var(--gris)">—</td>`;
@@ -1473,38 +1573,144 @@ function conmutador(sel, alCambiar) {
 }
 
 // ======================= §6 Teoría =======================
-const TEO = [   // log10(operaciones) en función de V
-  { id: "fb", f: V => V * Math.log10(4), txt: "4^V" },
-  { id: "bt", f: V => 2 * Math.log10(V), txt: "V²" },
-  { id: "gr", f: V => Math.log10(V * Math.log2(V)), txt: "V·log V" },
-  { id: "dc", f: V => Math.log10(V * Math.log2(V)), txt: "d·log d, d ≤ V" },
-  { id: "pd", f: V => Math.log10(V), txt: "V" },
-];
-function duracion(log10ops) {
-  const s = log10ops - 9;   // 10^9 operaciones por segundo
-  if (s > 9) return `≈ 10^${fmt(Math.round(s - 7.5))} años`;
-  const seg = Math.pow(10, s);
-  if (seg < 1e-3) return `${(seg * 1e6).toFixed(seg < 1e-6 ? 3 : 1)} µs`;
-  if (seg < 1) return `${(seg * 1e3).toFixed(1)} ms`;
-  if (seg < 3600) return `${seg.toFixed(1)} s`;
-  if (seg < 31557600) return `${(seg / 3600).toFixed(1)} h`;
-  return `${(seg / 31557600).toFixed(1)} años`;
+const log2 = (n) => (n > 1 ? Math.log2(n) : 0);
+const BIG_O = {   // f(n) = operaciones; lg(n) = log10 f(n), para escribir números enormes sin desbordar
+  peor: {
+    fb: { clase: "O(4ⁿ)", f: n => 4 ** n, lg: n => n * Math.log10(4), porque: "Con ciclos, desde cada casilla se abren hasta 3 ramas nuevas y prueba todos los caminos posibles: su número crece de forma exponencial." },
+    bt: { clase: "O(n²)", f: n => n * n, porque: "Una casilla puede volver a explorarse hasta n veces, una por cada vez que se llega a ella con menos pasos que antes." },
+    gr: { clase: "O(n log n)", f: n => n * log2(n), porque: "Si la meta queda detrás de muros, termina sacando casi todas las casillas del heap, y cada operación del heap cuesta log n." },
+    dc: { clase: "O(n²)", f: n => n * n, porque: "En salas abiertas cada inundación cubre casi todo el laberinto, y hay del orden de d ≤ n llamadas que inundan." },
+    pd: { clase: "O(n)", f: n => n, porque: "Cada casilla entra a la tabla dist una sola vez y nunca se recalcula, sin importar la forma del laberinto." },
+  },
+  mejor: {
+    fb: { clase: "O(n)", f: n => n, porque: "En un laberinto perfecto hay un solo camino: no hay ramas que probar y visita cada casilla una vez." },
+    bt: { clase: "O(n)", f: n => n, porque: "Si la primera solución que encuentra ya es la óptima, la poda por cota corta todo lo demás; igual prepara la tabla llegada de n casillas." },
+    gr: { clase: "O(√n log n)", f: n => Math.sqrt(n) * log2(n), porque: "Si el camino hacia la meta es casi recto, solo saca del heap las d ≈ 2√n casillas de ese camino. Es el único que baja de n, pero no garantiza el camino más corto." },
+    dc: { clase: "O(n)", f: n => n, porque: "Su primera inundación ya recorre todo el laberinto (n casillas); con pasillos estrechos el resto de las llamadas cuesta d log d." },
+    pd: { clase: "O(n)", f: n => n, porque: "Llena la tabla por capas hasta llegar a la meta, que está en la esquina opuesta: en el mejor caso también recorre casi todo." },
+  },
+};
+const RESUMEN_BIGO = {
+  peor: "En el peor caso, de mejor a peor: <b>PD O(n)</b> &lt; voraz O(n log n) &lt; backtracking y divide y vencerás O(n²) &lt; fuerza bruta O(4ⁿ). La PD es la única que sigue siendo O(n) incluso en el peor caso.",
+  mejor: "En el mejor caso casi todos bajan a O(n). Solo el voraz baja de n, O(√n log n), porque si el camino es casi recto no necesita recorrer el laberinto; pero no garantiza el camino más corto. La PD es O(n) siempre: su peor caso y su mejor caso coinciden.",
+};
+let casoBigO = "peor", nMaxBigO = 20, nSelBigO = 10, graficaBigO = null;
+
+function opsBigO(c, n) {   // { v: operaciones, lg: log10 de las operaciones }
+  const v = c.f(n);
+  return { v, lg: c.lg ? c.lg(n) : Math.log10(Math.max(v, 1e-12)) };
 }
-function dibujarTeoria() {
-  const V = Math.round(Math.pow(10, +$("#v-teo").value));
-  $("#v-teo-v").textContent = fmt(V) + (V >= 4e5 && V <= 6e5 ? " (≈ 1001 × 1001)" : "");
-  $("#barras").innerHTML = TEO.map(t => {
-    const a = ALG.find(x => x.id === t.id), L = t.f(Math.max(V, 2));
-    return `<div class="barra" style="--c:${a.color}"><span><span class="cod" style="--c:${a.color}">${a.corto}</span> ${a.nombre}</span>
-      <div class="carril"><div class="relleno" style="width:${Math.min(100, L / 15 * 100)}%"></div></div>
-      <span class="mono">O(${t.txt}) → ${duracion(L)}</span></div>`;
-  }).join("");
+function textoOps({ v, lg }) {
+  if (lg >= 9) return `10<sup>${fmt(Math.floor(lg))}</sup>`;
+  return fmt(+(v < 10 ? v.toFixed(1) : Math.round(v)));
+}
+function textoVeces(lg, lgPd) {
+  const d = lg - lgPd;
+  if (Math.abs(d) < 0.02) return "igual";
+  if (d >= 9) return `10<sup>${fmt(Math.floor(d))}</sup> veces más`;
+  return d > 0 ? `${fmt(+Math.pow(10, d).toPrecision(3))} veces más` : `${fmt(+Math.pow(10, -d).toPrecision(3))} veces menos`;
+}
+
+function dibujarBigO() {
+  const casos = BIG_O[casoBigO], yMax = nMaxBigO * 5, caso = casoBigO === "peor" ? "peor" : "mejor";
+  $("#bigo-n").max = nMaxBigO; $("#bigo-n").step = nMaxBigO / 100; $("#bigo-n").value = nSelBigO;
+  $("#bigo-n-v").textContent = `n = ${fmt(+nSelBigO.toPrecision(4))}`;
+
+  // grupos: algoritmos con la misma clase comparten curva (rayas de colores)
+  const grupos = [];
+  for (const a of ALG) {
+    const c = casos[a.id], g = grupos.find(x => x.clase === c.clase);
+    if (g) g.algs.push(a); else grupos.push({ clase: c.clase, f: c.f, algs: [a] });
+  }
+  const usadas = new Set(grupos.map(g => g.clase));
+  const refs = [["O(1)", () => 1], ["O(log n)", log2], ["O(n)", n => n], ["O(n log n)", n => n * log2(n)], ["O(n²)", n => n * n]].filter(([c]) => !usadas.has(c));
+
+  // tabla de lectura y explicaciones (funcionan aunque no cargue Chart.js)
+  const pd = opsBigO(casos.pd, nSelBigO);
+  const filas = ALG.map(a => ({ a, c: casos[a.id], o: opsBigO(casos[a.id], nSelBigO) })).sort((x, y) => x.o.lg - y.o.lg);
+  $("#bigo-tabla").innerHTML = filas.map(({ a, c, o }) => `<tr${a.id === "pd" ? ' class="ganador"' : ""}><td><span class="cod" style="--c:${a.color}">${a.corto}</span> ${a.nombre}</td><td class="mono">${c.clase}</td><td class="mono">${textoOps(o)}</td><td class="mono">${a.id === "pd" ? "referencia" : textoVeces(o.lg, pd.lg)}</td></tr>`).join("");
+  $("#bigo-tabla-cap").innerHTML = `Operaciones de cada algoritmo cuando n = ${fmt(+nSelBigO.toPrecision(4))} (${caso} caso, sin constantes).`;
+  $("#bigo-porque-t").textContent = `¿Por qué cada curva? (${caso} caso)`;
+  $("#bigo-porque").innerHTML = ALG.map(a => `<li><span class="cod" style="--c:${a.color}">${a.corto}</span> <b class="mono">${casos[a.id].clase}</b> · ${casos[a.id].porque}</li>`).join("");
+  $("#bigo-resumen").innerHTML = RESUMEN_BIGO[casoBigO];
+  $("#bigo-pie").innerHTML = `<b>Fig. 2.</b> Operaciones en función de <i>n</i>, ${caso} caso, para n ≤ ${fmt(nMaxBigO)}. La línea punteada vertical marca n = ${fmt(+nSelBigO.toPrecision(4))}; un triángulo arriba indica que esa curva ya salió de la gráfica.`;
+
+  if (!window.Chart) { $(".grafica-bigo").innerHTML = `<p class="aviso">No se pudo cargar Chart.js (¿sin conexión?). La tabla de abajo tiene los valores.</p>`; return; }
+  Chart.defaults.color = "#6b665c"; Chart.defaults.font.family = "'IBM Plex Sans', system-ui, sans-serif";
+  const xs = [];
+  for (let i = 0; i <= 400; i++) xs.push(i * nMaxBigO / 400);
+  const serie = (f) => xs.map(n => ({ x: n, y: Math.min(f(n), yMax * 2) }));   // recorta lo que ya salió de la gráfica
+  const datasets = [];
+  for (const g of grupos) g.algs.forEach((a, k) => datasets.push({
+    data: serie(g.f), borderColor: a.color, borderWidth: 3.5, pointRadius: 0,
+    ...(g.algs.length > 1 ? { borderDash: [10, 10 * (g.algs.length - 1)], borderDashOffset: 10 * k } : {}),
+  }));
+  for (const [, f] of refs) datasets.push({ data: serie(f), borderColor: "#c4bdaf", borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0 });
+
+  const etiquetas = {   // nombres sobre las curvas, en lugar de una leyenda
+    id: "etiquetas", afterDatasetsDraw(chart) {
+      const { ctx, chartArea: area, scales: { x, y } } = chart;
+      const ubicar = (f) => {   // último punto visible: borde derecho, o el punto donde la curva sale por arriba
+        if (f(nMaxBigO) <= yMax) return { px: x.getPixelForValue(nMaxBigO), py: y.getPixelForValue(f(nMaxBigO)), lado: "der" };
+        let lo = 0, hi = nMaxBigO;
+        for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (f(m) > yMax) hi = m; else lo = m; }
+        return { px: x.getPixelForValue(lo), py: area.top + 10, lado: "arriba" };
+      };
+      const lista = grupos.map(g => ({ ...ubicar(g.f), piezas: [...g.algs.map(a => [a.corto, a.color]), [g.clase, "#1d1c1a"]] }));
+      for (const [c, f] of refs) lista.push({ ...ubicar(f), piezas: [[c, "#9a9384"]], ref: true });
+      const der = lista.filter(e => e.lado === "der").sort((a, b) => a.py - b.py);   // separa las del borde derecho
+      for (let i = 1; i < der.length; i++) if (der[i].py - der[i - 1].py < 20) der[i].py = der[i - 1].py + 20;
+      ctx.save(); ctx.textBaseline = "middle";
+      for (const e of lista) {
+        ctx.font = `${e.ref ? 500 : 600} ${e.ref ? 11 : 13}px 'IBM Plex Sans', system-ui, sans-serif`;
+        const anchos = e.piezas.map(([t]) => ctx.measureText(t + " ").width), total = anchos.reduce((s, w) => s + w, 0);
+        let px = e.lado === "der" ? e.px - total - 6 : e.px + 8;
+        const py = e.lado === "der" ? e.py - 12 : e.py;
+        ctx.fillStyle = "rgba(251, 249, 244, .9)"; ctx.fillRect(px - 4, py - 10, total + 6, 20);
+        e.piezas.forEach(([t, c], i) => { ctx.fillStyle = c; ctx.fillText(t, px, py); px += anchos[i]; });
+      }
+      ctx.restore();
+    },
+  };
+  const marcador = {   // línea vertical en el n elegido y punto sobre cada curva
+    id: "marcador", afterDatasetsDraw(chart) {
+      const { ctx, chartArea: area, scales: { x, y } } = chart, px = x.getPixelForValue(nSelBigO);
+      ctx.save(); ctx.strokeStyle = "#1d1c1a"; ctx.setLineDash([5, 5]); ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(px, area.top); ctx.lineTo(px, area.bottom); ctx.stroke(); ctx.setLineDash([]);
+      for (const g of grupos) {
+        const v = g.f(nSelBigO);
+        ctx.fillStyle = g.algs[0].color; ctx.strokeStyle = "#fbf9f4"; ctx.lineWidth = 2;
+        if (v <= yMax) { ctx.beginPath(); ctx.arc(px, y.getPixelForValue(v), 6, 0, 7); ctx.fill(); ctx.stroke(); }
+        else { ctx.beginPath(); ctx.moveTo(px, area.top - 2); ctx.lineTo(px - 6, area.top + 9); ctx.lineTo(px + 6, area.top + 9); ctx.closePath(); ctx.fill(); }
+      }
+      ctx.restore();
+    },
+  };
+  if (graficaBigO) graficaBigO.destroy();
+  graficaBigO = new Chart($("#bigo-tiempo"), {
+    type: "line", data: { datasets }, plugins: [etiquetas, marcador],
+    options: {
+      maintainAspectRatio: false, animation: false, events: [], layout: { padding: { top: 14, right: 8 } },
+      scales: {
+        x: { type: "linear", min: 0, max: nMaxBigO, ticks: { display: false }, grid: { display: false }, border: { color: "#1d1c1a", width: 2 }, title: { display: true, text: "n (tamaño de entrada)" } },
+        y: { min: 0, max: yMax, ticks: { display: false }, grid: { display: false }, border: { color: "#1d1c1a", width: 2 }, title: { display: true, text: "Operaciones" } },
+      },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    },
+  });
+}
+function grupoBigO(sel, alCambiar) {
+  $(sel).addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    $(sel).querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    alCambiar(b.dataset.v); dibujarBigO();
+  });
 }
 
 // ======================= Portada y veredicto (datos de resultados.js) =======================
 function dibujarDatos() {
   const R = window.RESULTADOS;
-  $("#tabla-teo").innerHTML = ALG.map(a => `<tr${a.id === "pd" ? ' class="ganador"' : ""}><td><span class="cod" style="--c:${a.color}">${a.corto}</span> ${a.nombre}</td><td class="mono">${a.tiempo}</td><td class="mono">${a.espacio}</td><td>${a.optimo ? "Sí" : "No"}</td><td class="texto">${a.balance[0][1]}</td></tr>`).join("");
+  $("#tabla-teo").innerHTML = ALG.map(a => `<tr${a.id === "pd" ? ' class="ganador"' : ""}><td><span class="cod" style="--c:${a.color}">${a.corto}</span> ${a.nombre}</td><td class="mono">${a.tiempo}</td><td class="mono">${a.mejor}</td><td class="mono">${a.espacio}</td><td>${a.optimo ? "Sí" : "No"}</td><td class="texto">${a.balance[0][1]}</td></tr>`).join("");
   if (!R) return;
   const ultimo = (alg, fam) => [...R.familias[fam][alg]].reverse().find(d => d.estado === "ok");
   const P = R.familias.perfecto, okEn = (alg, n) => P[alg].find(d => d.n === n)?.estado === "ok";
@@ -1526,6 +1732,67 @@ function dibujarDatos() {
   };
   const orden = ["pd", "dc", "gr", "bt", "fb"].map(id => ALG.find(a => a.id === id));
   $("#tabla-veredicto").innerHTML = `<table><caption>Tabla 2. Clasificación final.</caption><thead><tr><th>Estrategia</th><th>¿Camino más corto?</th><th>Tiempo en ${nTodos} × ${nTodos} (perfecto)</th><th>Mayor laberinto con ciclos resuelto</th></tr></thead><tbody>${orden.map(filaVer).join("")}</tbody></table>`;
+}
+
+// ======================= §8 Conclusiones (cifras desde resultados.js) =======================
+function dibujarConclusiones() {
+  const R = window.RESULTADOS;
+  const g = (fam, alg, n) => R?.familias[fam][alg].find(d => d.n === n);
+  const ok = (d) => d && d.estado === "ok";
+  const ultimo = (fam, alg) => R && [...R.familias[fam][alg]].reverse().find(ok);
+  const seg = (d) => `${fmt(+(d.ms / 1000).toPrecision(3))} s`;
+  const veces = (a, b) => `${fmt(+(a.ms / b.ms).toPrecision(3))}×`;
+  const PD = "Programación dinámica", DV = "Divide y vencerás", VZ = "Voraz (Greedy)", BT = "Backtracking con poda", FB = "Fuerza bruta";
+  const nMax = R ? Math.max(...R.tamanos.filter(n => ok(g("perfecto", PD, n)))) : 0;
+  const nComp = R ? Math.max(...R.tamanos.filter(n => ok(g("perfecto", PD, n)) && ok(g("perfecto", DV, n)))) : 0;
+  const nTodos = R ? Math.max(...R.tamanos.filter(n => [PD, DV, VZ, BT, FB].every(a => ok(g("perfecto", a, n))))) : 0;
+  const pdP = g("perfecto", PD, nMax), pdC = g("ciclos", PD, nMax);
+
+  // menor tamaño desde el cual la PD es la exacta más rápida en todos los tamaños mayores (ambas familias)
+  let desde = null;
+  if (R) for (const n of [...R.tamanos].reverse()) {
+    const gana = ["perfecto", "ciclos"].every(f => { const p = g(f, PD, n); return [DV, BT, FB].every(a => { const d = g(f, a, n); return !ok(d) || d.ms >= p.ms; }); });
+    if (gana) desde = n; else break;
+  }
+
+  $("#razones-pd").innerHTML = [
+    "<b>Siempre encuentra el camino más corto.</b> Es exacta, como la fuerza bruta, pero sin su costo exponencial.",
+    `<b>Tiempo y memoria O(n):</b> cada casilla se calcula una sola vez.${pdP ? ` Resolvió ${nMax} × ${nMax} (${fmt(pdP.libres)} casillas libres) en ${seg(pdP)}${ok(pdC) ? `, y con ciclos en ${seg(pdC)}` : ""}.` : ""}`,
+    "<b>No depende de la forma del laberinto:</b> rinde igual en laberintos perfectos y con ciclos, donde la fuerza bruta y el backtracking dejan de terminar.",
+    R ? `<b>Es la exacta más rápida${desde && desde > R.tamanos[0] ? ` desde ${desde} × ${desde}` : ""}:</b> en ${nComp} × ${nComp}, divide y vencerás tardó ${veces(g("perfecto", DV, nComp), g("perfecto", PD, nComp))} más, y en ${nTodos} × ${nTodos} el backtracking tardó ${veces(g("perfecto", BT, nTodos), g("perfecto", PD, nTodos))} y la fuerza bruta ${veces(g("perfecto", FB, nTodos), g("perfecto", PD, nTodos))}.` : "<b>Es la exacta más rápida</b> en los laberintos grandes.",
+    "<b>Es iterativa:</b> no tiene límite de recursión ni riesgo de desbordar la pila de llamadas.",
+  ].map(x => `<li>${x}</li>`).join("");
+
+  const vzC = g("ciclos", VZ, nMax), pdCm = g("ciclos", PD, nMax), vzP = g("perfecto", VZ, nMax);
+  const btMax = ultimo("ciclos", BT), btFallo = R && R.familias.ciclos[BT].find(d => d.estado === "limite");
+  const fbMax = ultimo("ciclos", FB), dvP = ultimo("perfecto", DV), dvC = ultimo("ciclos", DV);
+  const ev = (txt) => R ? txt() : "—";
+  const filas = [
+    ["pd", "Cualquier laberinto, sobre todo cuando se exige el camino más corto o el laberinto es grande.",
+      "Llena la tabla <code>dist</code> una sola vez, capa por capa. Su costo no depende de cuántos caminos distintos haya.",
+      ev(() => `${nMax} × ${nMax}: ${seg(pdP)} (perfecto) y ${seg(pdCm)} (con ciclos), siempre con el camino óptimo.`),
+      "Prácticamente nunca. Solo necesita memoria para la tabla completa, O(n)."],
+    ["gr", "Cuando basta con <i>un</i> camino rápido, aunque no sea el más corto, o cuando el laberinto es perfecto (un único camino).",
+      "Avanza directo hacia la meta guiado por la distancia Manhattan y explora muy pocas casillas. En un laberinto perfecto el único camino es también el más corto.",
+      ev(() => `Con ciclos en ${nMax} × ${nMax}: ${veces(pdCm, vzC)} más rápido que la PD (exploró ${fmt(vzC.explorados)} casillas frente a ${fmt(pdCm.explorados)}), pero con ${fmt(vzC.pasos - pdCm.pasos)} pasos de más. Perfecto: ${seg(vzP)}, camino óptimo.`),
+      "Cuando el resultado debe ser el camino más corto: no lo garantiza."],
+    ["bt", "Laberintos pequeños o con pocos ciclos, o problemas con restricciones extra que se puedan podar.",
+      "Las podas por cota y por dominancia descartan ramas enteras. Si encuentra pronto una buena solución, corta casi todo lo demás.",
+      ev(() => `Perfecto ${nTodos} × ${nTodos}: ${seg(g("perfecto", BT, nTodos))} (${veces(g("perfecto", BT, nTodos), g("perfecto", PD, nTodos))} la PD). Con ciclos resolvió hasta ${btMax.n} × ${btMax.n}${btFallo ? ` y superó el límite en ${btFallo.n} × ${btFallo.n}` : ""}.`),
+      "Laberintos grandes con ciclos: sigue siendo cuadrático y usa recursión profunda."],
+    ["dc", "Laberintos de pasillos estrechos, o cuando se quiere repartir el trabajo: las mitades A → M y M → B son independientes y podrían resolverse en paralelo.",
+      "Con pasillos estrechos cada inundación cubre unas d casillas, así que el costo queda en Θ(d log d) con solo log d niveles de recursión.",
+      ev(() => `Siempre óptimo, pero ${veces(dvP, g("perfecto", PD, dvP.n))} más lento que la PD en ${dvP.n} × ${dvP.n} (perfecto) y ${veces(dvC, g("ciclos", PD, dvC.n))} en ${dvC.n} × ${dvC.n} (con ciclos). Por el límite de 30 s no se probó en tamaños mayores.`),
+      "Laberintos grandes o abiertos: repite inundaciones porque sus subproblemas se solapan."],
+    ["fb", "Laberintos diminutos o perfectos (con un solo camino), o como referencia para comprobar que otro algoritmo da el óptimo.",
+      "Si solo existe un camino, no hay ramas que probar y visita cada casilla una vez. En tamaños diminutos su simplicidad no cuesta nada.",
+      ev(() => `Perfecto ${nTodos} × ${nTodos}: ${seg(g("perfecto", FB, nTodos))} (${veces(g("perfecto", FB, nTodos), g("perfecto", PD, nTodos))} la PD). Con ciclos solo terminó hasta ${fbMax.n} × ${fbMax.n}.`),
+      "Cualquier laberinto mediano con ciclos: el número de caminos crece exponencialmente."],
+  ];
+  $("#tabla-casos").innerHTML = filas.map(([id, caso, porque, evidencia, evitar]) => {
+    const a = ALG.find(x => x.id === id);
+    return `<tr${id === "pd" ? ' class="ganador"' : ""}><td><span class="cod" style="--c:${a.color}">${a.corto}</span> ${a.nombre}</td><td class="texto">${caso}</td><td class="texto">${porque}</td><td class="texto">${evidencia}</td><td class="texto">${evitar}</td></tr>`;
+  }).join("");
 }
 
 // ======================= Herramientas de exposición =======================
@@ -1635,7 +1902,6 @@ $("#indice").innerHTML = ALG.map((a, i) => `<li><button role="tab" style="--c:${
 $("#indice").addEventListener("click", e => { const b = e.target.closest("button"); if (b) mostrarEstrategia(+b.dataset.i); });
 for (const id of ["#tam", "#cic"]) $(id).addEventListener("change", () => nuevoLaberinto(false));
 for (const id of ["#tam", "#cic", "#vel"]) $(id).addEventListener("input", etiquetas);
-$("#v-teo").addEventListener("input", dibujarTeoria);
 $("#b-nuevo").addEventListener("click", () => nuevoLaberinto(true));
 $("#b-carrera").addEventListener("click", carrera);
 $("#b-paso").addEventListener("click", paso);
@@ -1659,8 +1925,10 @@ addEventListener("keydown", teclado);
 addEventListener("resize", () => { paneles.forEach(pintarTodo); pintarLab(); });
 document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && document.body.classList.contains("expo")) modoExpo(false); });
 conmutador("#g-familia", v => familia = v);
+grupoBigO("#bigo-caso", v => { casoBigO = v; });
+grupoBigO("#bigo-rango", v => { nMaxBigO = +v; nSelBigO = nMaxBigO / 2; });
+$("#bigo-n").addEventListener("input", e => { nSelBigO = +e.target.value; dibujarBigO(); });
 conmutador("#g-metrica", v => metrica = v);
-conmutador("#g-escala", v => escalaEje = v);
 $("#sel-n").addEventListener("change", dibujarRelativos);
 
 etiquetas();
@@ -1670,8 +1938,9 @@ mostrarEstrategia(4);
 elegirLaberintoLab(1);
 elegirAlgLab(0);
 dibujarResultados();
-dibujarTeoria();
+dibujarBigO();
 dibujarDatos();
+dibujarConclusiones();
 figuraPortada();
 refrescarBarra();
 </script>
