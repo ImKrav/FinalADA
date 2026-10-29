@@ -1,8 +1,8 @@
-# Resolución de Laberintos — Fuerza Bruta
+# Resolución de Laberintos
 
 **Curso:** Análisis y Diseño de Algoritmos — 2026-2  
 **Integrantes:** Alejandro Bermudez, Juan David Mosquera, Santiago Restrepo  
-**Entrega:** Entrega 1 — Análisis de Complejidad y Recursividad  
+**Entregas:** Entrega 1 — Análisis de Complejidad y Recursividad (secciones 1–6) · Entrega 2 — Cinco estrategias de diseño (sección 7)  
 **Caso de uso elegido:** 3.3 Juego o Puzzle (Laberinto)  
 
 ---
@@ -102,23 +102,88 @@ python laberinto.py
 
 ## 7. Entrega 2 — Cinco estrategias de diseño
 
-El notebook [`laberintos.ipynb`](laberintos.ipynb) amplía el problema a **encontrar el camino más corto** y lo resuelve con cinco estrategias:
+En la Entrega 2 el problema pasa a ser **encontrar el camino más corto**, y se resuelve con cinco estrategias de diseño de algoritmos. Así se compara no solo la velocidad, sino también la calidad de la respuesta.
 
-| Estrategia | Tiempo | Espacio | ¿Óptimo? |
-|---|---|---|---|
-| Fuerza bruta (todos los caminos) | $O(4^{N \times M})$ | $O(N \times M)$ | ✅ |
-| Backtracking con poda (cota + dominancia) | $O((N \times M)^2)$ | $O(N \times M)$ | ✅ |
-| Voraz (greedy best-first) | $O(NM \log NM)$ | $O(N \times M)$ | ❌ |
-| Divide y vencerás (punto medio) | $O(d \log d)$ típico | $O(N \times M)$ | ✅ |
-| **Programación dinámica (tabulación)** | $\mathbf{O(N \times M)}$ | $\mathbf{O(N \times M)}$ | ✅ |
+### 7.1 Archivos
 
-Incluye verificación automática de corrección, los casos de la Entrega 1 y un experimento con laberintos de hasta **2001 × 2001** (unos 2 millones de casillas libres).
-Los resultados se exportan a `resultados.js` y se presentan en [`index.html`](index.html), una página interactiva con una carrera en vivo entre los 5 algoritmos, un laboratorio paso a paso que muestra la lógica de cada uno (pseudocódigo, decisiones y estado interno) y gráficas comparativas en escala lineal y logarítmica.
+| Archivo | Contenido |
+|---|---|
+| [`laberintos.ipynb`](laberintos.ipynb) | Notebook con los cinco algoritmos explicados, verificación de corrección, casos de la Entrega 1, experimento y conclusiones. |
+| [`index.html`](index.html) | Presentación interactiva para la exposición. |
+| [`resultados.js`](resultados.js) | Mediciones del experimento. Lo genera el notebook (sección 12) y lo lee `index.html`. |
+| [`laberinto.py`](laberinto.py) | Solución de la Entrega 1; el notebook reutiliza sus casos de prueba. |
+
+### 7.2 Las cinco estrategias
+
+*n* = *N*·*M* es el tamaño de la entrada (casillas del tablero).
+
+| Estrategia | Nombre conocido | Tiempo (peor caso) | Tiempo (mejor caso) | Espacio | ¿Camino más corto? |
+|---|---|---|---|---|---|
+| Fuerza bruta | Búsqueda exhaustiva (todos los caminos simples con DFS) | $O(4^n)$ | $O(n)$ | $O(n)$ | ✅ |
+| Backtracking con poda | Ramificación y poda (*branch and bound*), con poda por dominancia | $O(n^2)$ | $O(n)$ | $O(n)$ | ✅ |
+| Voraz | Búsqueda voraz «primero el mejor» (*Greedy Best-First Search*) con distancia Manhattan | $O(n \log n)$ | $O(\sqrt{n} \log n)$ | $O(n)$ | ❌ |
+| Divide y vencerás | Recursión por punto medio (Hirschberg; *Divide-and-Conquer Frontier Search* de Korf) | $O(n^2)$ | $O(n)$ | $O(n)$ | ✅ |
+| **Programación dinámica** | **BFS por capas = algoritmo de Lee** (equivale a Dijkstra con pasos de costo 1) | $\mathbf{O(n)}$ | $\mathbf{O(n)}$ | $\mathbf{O(n)}$ | ✅ |
+
+El voraz **no es Dijkstra**: Dijkstra también es voraz, pero elige por la distancia ya recorrida y por eso sí garantiza el camino más corto.
+
+El código Python usa solo construcciones básicas: listas, `for`, `while`, `if` y funciones con parámetros. Cada algoritmo se verifica automáticamente en 300 laberintos aleatorios y en un caso sin salida.
+
+### 7.3 Experimento y resultados
+
+Se midieron tiempo, memoria y casillas exploradas en laberintos de 11 × 11 hasta **2001 × 2001** (unos 2 millones de casillas libres), de dos tipos:
+- **perfectos:** un único camino;
+- **con ciclos:** 10 % de paredes extra derribadas.
+
+Un algoritmo que tarda más de 30 s o supera su presupuesto de operaciones deja de probarse en tamaños mayores. Fuerza bruta y backtracking se prueban hasta 1001 × 1001, porque por encima la recursión pasaría del millón de niveles.
+
+| Estrategia | Resultado principal |
+|---|---|
+| **Programación dinámica** | Resuelve 2001 × 2001 en ≈ 4,4 s (perfecto) y ≈ 5,4 s (con ciclos), siempre con el camino óptimo. |
+| Voraz | Llega a 2001 × 2001 y es el más rápido con ciclos, pero da caminos más largos: 2 344 pasos de más en 2001 × 2001. |
+| Divide y vencerás | Óptimo, pero ≈ 31 veces más lento que la PD en 1001 × 1001 (perfecto); con ciclos llega a 1501 × 1501. |
+| Backtracking con poda | ≈ 2,2 veces la PD en 1001 × 1001 perfecto; con ciclos llega a 161 × 161. |
+| Fuerza bruta | ≈ 1,7 veces la PD en 1001 × 1001 perfecto (un solo camino); con ciclos solo termina hasta 21 × 21. |
+
+**Conclusión:** en cualquier caso, el algoritmo más óptimo es la **programación dinámica**. Garantiza el camino más corto, es $O(n)$ en tiempo y memoria incluso en el peor caso, y es la exacta más rápida en los laberintos grandes. Las demás solo compiten en su caso favorable: el voraz cuando basta con un camino cualquiera, y la fuerza bruta o el backtracking en laberintos pequeños o casi sin ciclos.
+
+### 7.4 La presentación (`index.html`)
+
+| Sección | Contenido |
+|---|---|
+| §1 El problema | Entradas, salidas, restricciones y la notación (*n*, *V*, *d*). |
+| §2 Carrera en vivo | Los cinco algoritmos resuelven el mismo laberinto. Incluye casos de demostración (como la «trampa para el voraz»), botón «Un paso» y paredes editables con clic. |
+| §3 Las cinco estrategias | Idea, nombre conocido, analogía, complejidad y código Python de cada una. |
+| §4 Paso a paso | Depurador: el código Python con la línea en ejecución resaltada, variables, pila de llamadas y explicación de cada decisión, en un laberinto pequeño. |
+| §5 Experimento | Tabla de mediciones y barras de «cuántas veces más lento que la PD». |
+| §6 Complejidad Big O | Gráfica de complejidad temporal con peor y mejor caso, selector de rango de *n*, marcador con tabla de operaciones y explicación de cada curva. |
+| §7 Veredicto | Clasificación final. |
+| §8 Conclusiones | El algoritmo más óptimo en cualquier caso y el mejor según el caso favorable. |
+
+**Atajos durante la exposición:**
+
+| Tecla | Acción |
+|---|---|
+| `P` | Modo exposición: una sección por pantalla, con cronómetro. |
+| `←` / `→` | Sección anterior o siguiente. |
+| `N` | Guion del expositor. |
+| `V` | Vista del presentador en otra ventana. |
+| `L` | Puntero láser. |
+| `+` / `−` | Tamaño del texto. |
+| `C` / `S` | Carrera / un paso (§2). |
+| `,` / `.` | Paso atrás / adelante (§4). |
+| `?` | Lista completa de atajos. |
+
+### 7.5 Cómo ejecutar
 
 ```bash
 pip install notebook matplotlib numpy
-jupyter notebook laberintos.ipynb      # ejecutar todas las celdas (~15 min) regenera resultados.js
 ```
 
-Para la presentación basta con abrir `index.html` en el navegador (Chart.js y las fuentes se cargan desde internet).
-Atajos útiles durante la exposición: `P` modo exposición (una sección por pantalla, con cronómetro), `N` guion del expositor, `V` vista del presentador en otra ventana, `L` puntero láser, `+`/`−` tamaño del texto y `?` lista completa de atajos.
+```bash
+jupyter notebook laberintos.ipynb
+```
+
+Ejecutar todas las celdas tarda unos 10–15 minutos, la mayor parte en los laberintos gigantes, y regenera `resultados.js`.
+
+Para ver la presentación hay que abrir `index.html` en el navegador, **con `resultados.js` en la misma carpeta** (por ejemplo, descargando el repositorio completo con *Code → Download ZIP*). Las gráficas y las fuentes se cargan desde internet. Sin conexión, la carrera, el paso a paso y las tablas siguen funcionando.
