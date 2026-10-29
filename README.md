@@ -117,7 +117,7 @@ Los resultados se exportan a `resultados.js` y se presentan en [`index.html`](in
 
 ```bash
 pip install notebook matplotlib numpy
-jupyter notebook laberintos.ipynb      # ejecutar todas las celdas (~5 min) regenera resultados.js
+jupyter notebook laberintos.ipynb      # ejecutar todas las celdas (~15 min) regenera resultados.js
 ```
 
 Para la presentación basta con abrir `index.html` en el navegador (Chart.js y las fuentes se cargan desde internet).
