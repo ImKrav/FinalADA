@@ -91,7 +91,9 @@ input[type=range] { width: 100%; accent-color: var(--tinta); }
 .tablero { border-top: 4px solid var(--c); padding-top: .5rem; }
 .tablero header { display: flex; align-items: baseline; gap: .45rem; font-weight: 600; font-size: .9rem; min-height: 2.6em; }
 .cod { font: 500 .72rem var(--mono); color: var(--papel-claro); background: var(--c); padding: 0 .3rem; }
-.tablero canvas { width: 100%; aspect-ratio: 1; display: block; cursor: crosshair; touch-action: none; background: var(--pared); }
+.tablero canvas { width: 100%; aspect-ratio: 1; display: block; cursor: crosshair; touch-action: none; background: var(--papel-claro); outline: 1px solid var(--regla); }
+.aviso-turbo[hidden] { display: none; }
+.aviso-turbo { display: inline-block; margin-top: .8rem; font: 500 .8rem var(--mono); background: var(--tinta); color: var(--papel-claro); padding: .2rem .6rem; }
 .tablero dl { display: grid; grid-template-columns: auto 1fr; gap: .1rem .8rem; margin: .5rem 0 0; font-size: .8rem; }
 .tablero dt { color: var(--gris); }
 .tablero dd { margin: 0; text-align: right; font-family: var(--mono); }
@@ -262,7 +264,7 @@ footer .hoja { display: block; }
       <div class="panel-control">
         <div class="deslizador"><label for="tam">Tamaño <output id="tam-v"></output></label><input id="tam" type="range" min="7" max="101" step="2" value="31"></div>
         <div class="deslizador"><label for="cic">Paredes derribadas (ciclos) <output id="cic-v"></output></label><input id="cic" type="range" min="0" max="40" step="1" value="10"></div>
-        <div class="deslizador"><label for="vel">Velocidad (casillas por cuadro) <output id="vel-v"></output></label><input id="vel" type="range" min="0" max="100" value="50"></div>
+        <div class="deslizador"><label for="vel">Velocidad (casillas por cuadro) <output id="vel-v"></output></label><input id="vel" type="range" min="0" max="100" value="14"></div>
         <div class="fila-botones">
           <button class="btn lleno" id="b-carrera"><span>Iniciar carrera</span> <kbd>C</kbd></button>
           <button class="btn" id="b-paso">Un paso <kbd>S</kbd></button>
@@ -276,8 +278,10 @@ footer .hoja { display: block; }
         </div>
       </div>
       <div class="tableros" id="tableros"></div>
+      <span class="aviso-turbo" id="turbo" hidden>Acelerado ×20: solo faltan los algoritmos más lentos</span>
       <div class="leyenda">
-        <span><i style="background:var(--pared)"></i>pared</span>
+        <span><i style="background:#aaa293"></i>pared</span>
+        <span><i style="background:var(--tinta);outline:2px solid var(--papel-claro);outline-offset:-4px"></i>casilla que explora ahora</span>
         <span><i style="background:var(--papel-claro)"></i>libre sin explorar</span>
         <span><i style="background:#dba99b"></i>explorada una vez</span>
         <span><i style="background:var(--fb)"></i>explorada muchas veces (trabajo repetido)</span>
@@ -290,6 +294,7 @@ footer .hoja { display: block; }
         <li>Pulsar <b>Trampa para el voraz</b>: el voraz suele llegar primero, pero con pasos de más. "Rápido no es lo mismo que correcto".</li>
         <li>Con <b>Un paso</b> (S) se puede explicar una sola decisión de cada algoritmo, casilla por casilla.</li>
         <li><b>Medir al instante</b> muestra el tiempo real en milisegundos de este navegador.</li>
+        <li>El cuadrito negro marca la casilla que cada algoritmo explora en ese momento. Si va muy rápido o muy lento, ajustar la <b>Velocidad</b>; cuando solo faltan dos algoritmos, la carrera se acelera ×20 sola.</li>
       </ul></div>
     </div>
   </div>
@@ -718,13 +723,14 @@ function* dinamica(L) {
   while (camino[camino.length - 1] !== L.ini) { const c = camino[camino.length - 1]; camino.push(L.ady[c].find(v => dist[v] === dist[c] - 1)); }
   return { camino: camino.reverse() };
 }
-const FUNCIONES = { fb: L => fuerzaBruta(L, 3e5), bt: L => backtracking(L, 3e5), gr: voraz, dc: divideVenceras, pd: dinamica };
+const FUNCIONES = { fb: (L, lim = 3e5) => fuerzaBruta(L, lim), bt: (L, lim = 3e5) => backtracking(L, lim), gr: voraz, dc: divideVenceras, pd: dinamica };
+const LIMITE_CARRERA = 4e4;   // en la animación, para que la fuerza bruta no tarde minutos en rendirse
 const correr = (gen) => { let r; while (!(r = gen.next()).done); return r.value; };
 
 // ======================= Utilidades =======================
 const $ = (s) => document.querySelector(s);
 const fmt = (x) => x.toLocaleString("es-CO");
-const PARED = "#2a2722", LIBRE = "#fbf9f4", TINTA = "#1d1c1a";
+const PARED = "#2a2722", PARED_TABLERO = "#aaa293", LIBRE = "#fbf9f4", TINTA = "#1d1c1a";
 const reducido = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function marcas(ctx, n, t) {   // inicio: círculo de tinta; fin: cuadrado con borde
@@ -733,9 +739,11 @@ function marcas(ctx, n, t) {   // inicio: círculo de tinta; fin: cuadrado con b
   ctx.strokeRect(f * t + t * 0.15, f * t + t * 0.15, t * 0.7, t * 0.7);
 }
 function trazo(ctx, n, t, camino) {
-  ctx.save(); ctx.strokeStyle = TINTA; ctx.lineWidth = Math.max(1.5, t * 0.34); ctx.lineCap = ctx.lineJoin = "round"; ctx.beginPath();
+  ctx.save(); ctx.lineCap = ctx.lineJoin = "round"; ctx.beginPath();
   camino.forEach((k, i) => { const X = (k % n + 0.5) * t, Y = (((k / n) | 0) + 0.5) * t; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
-  ctx.stroke(); ctx.restore();
+  ctx.strokeStyle = LIBRE; ctx.lineWidth = Math.max(3.5, t * 0.62); ctx.stroke();   // halo claro para que el camino resalte
+  ctx.strokeStyle = TINTA; ctx.lineWidth = Math.max(1.5, t * 0.34); ctx.stroke();
+  ctx.restore();
 }
 function ajustar(canvas) {
   const lado = Math.round(canvas.clientWidth * (window.devicePixelRatio || 1)) || 300;
@@ -807,11 +815,11 @@ function nuevoLaberinto(regenerar = true) {
 function reiniciar() {
   animando = false; pausado = false; terminados = [];
   textoCarrera("Iniciar carrera");
-  $("#llegada").hidden = true; $("#llegada-lista").innerHTML = "";
+  $("#llegada").hidden = true; $("#llegada-lista").innerHTML = ""; $("#turbo").hidden = true;
   const r = correr(dinamica(lab));
   optimo = r.camino ? r.camino.length - 1 : null;
   for (const p of paneles) {
-    p.visitas = new Uint16Array(lab.n * lab.n); p.cuenta = 0; p.gen = null; p.res = null;
+    p.visitas = new Uint16Array(lab.n * lab.n); p.cuenta = 0; p.gen = null; p.res = null; p.cabeza = -1;
     p.el.classList.remove("primero");
     p.ops.textContent = "0"; p.pasos.textContent = "—"; p.ms.textContent = "—";
     p.estado.textContent = optimo === null ? "No hay salida." : ""; p.estado.className = "estado";
@@ -821,7 +829,7 @@ function reiniciar() {
 
 function pintarCelda(p, k, t) {
   const x = (k / lab.n) | 0, y = k % lab.n, ctx = p.ctx, v = p.visitas[k];
-  ctx.fillStyle = lab.g[k] ? PARED : LIBRE;
+  ctx.fillStyle = lab.g[k] ? PARED_TABLERO : LIBRE;
   ctx.fillRect(y * t, x * t, t + .5, t + .5);
   if (v) { ctx.globalAlpha = Math.min(1, 0.32 + 0.17 * v); ctx.fillStyle = p.a.color; ctx.fillRect(y * t, x * t, t + .5, t + .5); ctx.globalAlpha = 1; }
 }
@@ -858,10 +866,15 @@ function alTerminar(p) {
 function avanzar(p, k) {   // ejecuta k casillas del algoritmo del panel p
   if (p.res) return;
   const t = p.canvas.width / lab.n;
+  if (p.cabeza >= 0) pintarCelda(p, p.cabeza, t);   // borra el marcador del cuadro anterior
   for (let i = 0; i < k; i++) {
     const r = p.gen.next();
     if (r.done) { p.res = r.value; break; }
-    p.cuenta++; p.visitas[r.value]++; pintarCelda(p, r.value, t);
+    p.cuenta++; p.visitas[r.value]++; pintarCelda(p, r.value, t); p.cabeza = r.value;
+  }
+  if (!p.res && p.cabeza >= 0) {   // marcador: la casilla que el algoritmo explora en este momento
+    const x = (p.cabeza / lab.n) | 0, y = p.cabeza % lab.n;
+    p.ctx.fillStyle = TINTA; p.ctx.fillRect(y * t + t * 0.12, x * t + t * 0.12, t * 0.76, t * 0.76);
   }
   marcas(p.ctx, lab.n, t);
   p.ops.textContent = fmt(p.cuenta);
@@ -870,7 +883,7 @@ function avanzar(p, k) {   // ejecuta k casillas del algoritmo del panel p
 
 function preparar() {
   reiniciar();
-  for (const p of paneles) p.gen = FUNCIONES[p.a.id](lab);
+  for (const p of paneles) p.gen = FUNCIONES[p.a.id](lab, LIMITE_CARRERA);
   animando = true;
   requestAnimationFrame(cuadro);
 }
@@ -892,12 +905,17 @@ function paso() {
 }
 
 function terminarSiTodos() {
-  if (paneles.every(p => p.res)) { animando = false; pausado = false; textoCarrera("Iniciar carrera"); }
+  if (paneles.every(p => p.res)) { $("#turbo").hidden = true; animando = false; pausado = false; textoCarrera("Iniciar carrera"); }
 }
 
 function cuadro() {
   if (!animando) return;
-  if (!pausado) { const k = velocidad(); paneles.forEach(p => avanzar(p, k)); terminarSiTodos(); }
+  if (!pausado) {
+    const turbo = terminados.length >= 3 && terminados.length < paneles.length;   // ya solo faltan los lentos
+    $("#turbo").hidden = !turbo;
+    const k = velocidad() * (turbo ? 20 : 1);
+    paneles.forEach(p => avanzar(p, k)); terminarSiTodos();
+  }
   if (animando) requestAnimationFrame(cuadro);
 }
 
