@@ -224,6 +224,13 @@ select.sel { font: 500 .85rem var(--sans); color: var(--tinta); border: 0; borde
 .comparacion .barra { grid-template-columns: 13rem minmax(0, 1fr) 17rem; }
 @media (max-width: 700px) { .comparacion .barra { grid-template-columns: 1fr; } }
 
+/* ---------- Big O ---------- */
+.big-o { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.4rem; }
+@media (max-width: 900px) { .big-o { grid-template-columns: 1fr; } }
+.big-o h3 { font-size: 1.3rem; margin-bottom: .5rem; }
+.big-o > figure { min-width: 0; }
+.grafica-bigo { height: 380px; }
+
 /* ---------- Conclusiones ---------- */
 .conclusion-final { padding: 1.6rem 1.8rem; border-radius: var(--r); background: var(--papel-claro); margin-top: .6rem; }
 .conclusion-final h3 { font-size: clamp(1.6rem, 3.2vw, 2.4rem); margin: .2rem 0 .8rem; }
@@ -298,8 +305,9 @@ dialog:modal { position: fixed; }
           <tr><td><b>Entrada</b></td><td class="texto">Matriz de casillas libres y paredes (⬜ / ⬛ en el notebook), un inicio y un fin.</td></tr>
           <tr><td><b>Salida</b></td><td class="texto">La lista de casillas del camino, o "no hay salida".</td></tr>
           <tr><td><b>Restricciones</b></td><td class="texto">No salir del tablero, no pisar paredes, moverse solo arriba, abajo, izquierda o derecha.</td></tr>
-          <tr><td><b><i>V</i></b></td><td class="texto">Número de casillas libres (≈ <i>N·M</i>/2). Es el tamaño de la entrada en todas las complejidades.</td></tr>
-          <tr><td><b><i>d</i></b></td><td class="texto">Longitud del camino más corto (<i>d</i> ≤ <i>V</i>).</td></tr>
+          <tr><td><b><i>n</i></b></td><td class="texto">Tamaño de la entrada: casillas del tablero, <i>n</i> = <i>N·M</i>. Es la <i>n</i> de todas las complejidades Big O.</td></tr>
+          <tr><td><b><i>V</i></b></td><td class="texto">Casillas libres (≈ <i>n</i>/2). Es lo que se mide en el experimento; tiene el mismo orden que <i>n</i>.</td></tr>
+          <tr><td><b><i>d</i></b></td><td class="texto">Longitud del camino más corto (<i>d</i> ≤ <i>n</i>).</td></tr>
         </tbody>
       </table></div>
       <div class="nota-orador"><ul>
@@ -434,7 +442,7 @@ dialog:modal { position: fixed; }
     <div class="num">§<b>5</b></div>
     <div class="principal">
       <h2 class="titulo-sec">Experimento con laberintos gigantes</h2>
-      <p class="entradilla">Mediciones reales en Python, de 11 × 11 a 2001 × 2001 (unos 2 millones de casillas libres). Cuando una línea se corta, el algoritmo dejó de probarse.</p>
+      <p class="entradilla">Mediciones reales en Python, de 11 × 11 a 2001 × 2001 (unos 2 millones de casillas libres). La tabla y las barras muestran lo que se midió; «—» o «límite» indican que el algoritmo dejó de probarse.</p>
       <div>
         <div class="conmutador" id="g-familia" role="group" aria-label="Familia de laberintos">
           <button data-v="perfecto" aria-pressed="true">Perfectos</button><button data-v="ciclos" aria-pressed="false">Con ciclos (10 %)</button>
@@ -442,18 +450,9 @@ dialog:modal { position: fixed; }
         <div class="conmutador" id="g-metrica" role="group" aria-label="Métrica">
           <button data-v="ms" aria-pressed="true">Tiempo</button><button data-v="kb" aria-pressed="false">Memoria</button><button data-v="explorados" aria-pressed="false">Casillas exploradas</button>
         </div>
-        <div class="conmutador" id="g-escala" role="group" aria-label="Escala de la gráfica">
-          <button data-v="lineal" aria-pressed="true">Escala lineal</button><button data-v="log" aria-pressed="false">Escala log</button>
-        </div>
       </div>
-      <figure>
-        <div class="grafica"><canvas id="grafica" aria-label="Gráfica de resultados"></canvas></div>
-        <figcaption id="fig-grafica"></figcaption>
-      </figure>
     </div>
     <aside class="margen">
-      <p><strong>Escala lineal:</strong> muestra las diferencias reales de tiempo; ahí se ve cuánto se separa cada algoritmo a medida que crece el laberinto.</p>
-      <p><strong>Escala log:</strong> la <i>pendiente</i> es el exponente de la complejidad (1 = lineal, 2 = cuadrática), pero las diferencias se ven más pequeñas.</p>
       <p><strong>Método.</strong> <code>time.perf_counter</code>, mejor de 3 corridas; memoria con <code>tracemalloc</code> en una corrida aparte.</p>
       <p><strong>Límites.</strong> Un algoritmo que tarda más de 30 s o supera su presupuesto de operaciones deja de probarse en tamaños mayores. Fuerza bruta y backtracking llegan hasta 1001 × 1001 (por encima, la pila de recursión superaría el millón de niveles).</p>
       <p>La memoria de los recursivos solo se midió hasta 81 × 81: <code>tracemalloc</code> se vuelve cuadrático con recursión profunda.</p>
@@ -466,10 +465,8 @@ dialog:modal { position: fixed; }
       </div>
       <div class="desplazable" id="tabla"></div>
       <div class="nota-orador"><ul>
-        <li>Empezar en <b>Perfectos / Tiempo / Escala lineal</b>: divide y vencerás se dispara mientras la PD casi no despega del eje.</li>
-        <li>Mostrar las barras: en 1001 × 1001 divide y vencerás tarda unas 20 veces lo que la PD. Cambiar el laberinto a 2001 × 2001 para ver solo a los que escalan.</li>
+        <li>Empezar en <b>Perfectos / Tiempo</b> y mostrar las barras: en 1001 × 1001 divide y vencerás tarda unas 20 veces lo que la PD. Cambiar el laberinto a 2001 × 2001 para ver solo a los que escalan.</li>
         <li>Cambiar a <b>Con ciclos</b>: la fuerza bruta desaparece en 41 × 41 y el backtracking en 321 × 321.</li>
-        <li>Pasar a <b>Escala log</b> para leer la complejidad por la pendiente: PD ≈ 1.</li>
         <li>En <b>Casillas exploradas</b>, el voraz explora menos que todos, pero la tabla marca ✗ (camino no óptimo).</li>
       </ul></div>
     </div>
@@ -477,19 +474,31 @@ dialog:modal { position: fixed; }
 </section>
 
 <!-- ====================== §6 Teoría ====================== -->
-<section class="diapo" id="teoria" data-diapo="Complejidad teórica">
+<section class="diapo" id="teoria" data-diapo="Complejidad Big O">
   <div class="hoja">
     <div class="num">§<b>6</b></div>
     <div class="principal">
-      <h2 class="titulo-sec">¿Cuánto crecen las operaciones?</h2>
-      <p class="entradilla">Tiempo estimado en el peor caso, suponiendo mil millones de operaciones por segundo.</p>
-      <div class="deslizador" style="max-width:34rem"><label for="v-teo">Casillas libres <i>V</i> <output id="v-teo-v"></output></label><input id="v-teo" type="range" min="1" max="6" step="0.05" value="2"></div>
-      <div class="barras" id="barras"></div>
+      <h2 class="titulo-sec">Complejidad en notación Big O</h2>
+      <p class="entradilla">Cómo crecen el tiempo y la memoria de cada algoritmo cuando crece el tamaño de entrada <b><i>n</i></b> (el número de casillas del laberinto, <i>n</i> = <i>N</i>·<i>M</i>).</p>
     </div>
     <aside class="margen">
-      <p>Las barras están en escala logarítmica: la barra completa equivale a 10<sup>15</sup> operaciones.</p>
+      <p><strong>Cómo leerlas.</strong> Big O ignora constantes: solo importa la <i>forma</i> de la curva. Mientras más rápido sube, peor escala el algoritmo.</p>
+      <p>Las líneas grises son clases de referencia. Cuando dos algoritmos comparten clase, sus colores se alternan sobre la misma línea.</p>
     </aside>
     <div class="ancho">
+      <div class="big-o">
+        <figure>
+          <h3>Complejidad temporal</h3>
+          <div class="grafica grafica-bigo"><canvas id="bigo-tiempo" aria-label="Gráfica Big O de la complejidad temporal"></canvas></div>
+          <figcaption><b>Fig. 2.</b> Operaciones en función de <i>n</i>. Peor caso, salvo divide y vencerás (caso típico de pasillos estrechos; su peor caso es O(n²)).</figcaption>
+        </figure>
+        <figure>
+          <h3>Complejidad espacial</h3>
+          <div class="grafica grafica-bigo"><canvas id="bigo-espacio" aria-label="Gráfica Big O de la complejidad espacial"></canvas></div>
+          <figcaption><b>Fig. 3.</b> Memoria en función de <i>n</i>. Los cinco son O(n): todos guardan algo por casilla (una tabla, el camino o la pila de recursión).</figcaption>
+        </figure>
+      </div>
+      <p class="resumen-final" style="margin-top:1.2rem">En tiempo, de mejor a peor: <b>PD O(n)</b> &lt; voraz y divide y vencerás O(n log n) &lt; backtracking O(n²) &lt; fuerza bruta O(4ⁿ). En memoria empatan los cinco en O(n), así que el desempate lo decide el tiempo.</p>
       <div class="desplazable">
         <table>
           <caption>Resumen de complejidades.</caption>
@@ -498,7 +507,8 @@ dialog:modal { position: fixed; }
         </table>
       </div>
       <div class="nota-orador"><ul>
-        <li>Mover el control hasta unas 500 000 casillas (el laberinto de 1001 × 1001): la fuerza bruta da una cifra astronómica de años; la PD, menos de un milisegundo de operaciones.</li>
+        <li>Gráfica de tiempo: la fuerza bruta (exponencial) sale de la gráfica casi de inmediato; el backtracking (n²) poco después; la PD (n) es la recta más baja de las cinco.</li>
+        <li>Gráfica de memoria: los cinco son O(n), por eso comparten la misma línea. La memoria no decide al ganador: lo decide el tiempo.</li>
         <li>Recordar que el backtracking pasa de exponencial a cuadrático solo gracias a la poda por dominancia.</li>
       </ul></div>
     </div>
@@ -511,7 +521,7 @@ dialog:modal { position: fixed; }
     <div class="num">§<b>7</b></div>
     <div class="principal">
       <h2 class="veredicto-titulo">Gana la <span>programación dinámica</span>.</h2>
-      <p class="entradilla">Es la única estrategia que <b>garantiza el camino más corto</b> con tiempo y memoria <b>O(N·M)</b>: cada subproblema <code>dist[x][y]</code> se calcula una sola vez y se guarda en una tabla.</p>
+      <p class="entradilla">Es la única estrategia que <b>garantiza el camino más corto</b> con tiempo y memoria <b>O(n)</b>: cada subproblema <code>dist[x][y]</code> se calcula una sola vez y se guarda en una tabla.</p>
       <div class="desplazable" id="tabla-veredicto"></div>
     </div>
     <aside class="margen">
@@ -550,7 +560,7 @@ dialog:modal { position: fixed; }
           <tbody id="tabla-casos"></tbody>
         </table>
       </div>
-      <p class="resumen-final">En resumen: para resolver laberintos gigantescos con la mejor complejidad temporal y espacial, garantizando el camino más corto, la respuesta es la <b>programación dinámica</b>, con <b>O(N·M)</b> en tiempo y en espacio. Las demás estrategias solo compiten en su caso favorable: el voraz cuando basta con un camino cualquiera, y la fuerza bruta o el backtracking cuando el laberinto es pequeño o casi no tiene ciclos.</p>
+      <p class="resumen-final">En resumen: para resolver laberintos gigantescos con la mejor complejidad temporal y espacial, garantizando el camino más corto, la respuesta es la <b>programación dinámica</b>, con <b>O(n)</b> en tiempo y en espacio. Las demás estrategias solo compiten en su caso favorable: el voraz cuando basta con un camino cualquiera, y la fuerza bruta o el backtracking cuando el laberinto es pequeño o casi no tiene ciclos.</p>
       <div class="nota-orador"><ul>
         <li>Primero la respuesta corta: <b>en cualquier caso, la PD</b>. Leer las razones con sus cifras.</li>
         <li>Luego la tabla: no hay algoritmo "inútil", cada uno tiene un caso favorable. El voraz es el más rápido si no importa que el camino sea el más corto; la fuerza bruta sirve de referencia para verificar.</li>
@@ -772,31 +782,31 @@ def resolver_dv(tablero, a, b, radio, datos):
 // ======================= Datos de cada estrategia =======================
 const ALG = [
   { id: "fb", corto: "FB", nombre: "Fuerza bruta", py: "Fuerza bruta", color: "#b5442e",
-    tiempo: "O(4^(N·M))", espacio: "O(N·M)", optimo: true,
+    tiempo: "O(4ⁿ)", espacio: "O(n)", optimo: true,
     conocido: "Búsqueda exhaustiva (<i>exhaustive search</i>): enumera todos los caminos simples con una búsqueda en profundidad (DFS).",
     idea: "Genera <b>todos</b> los caminos simples desde el inicio y se queda con el más corto. No descarta nada: aunque ya tenga una solución, sigue probando todas las demás.",
     analogia: "Como recorrer a pie cada ruta posible de la ciudad antes de decidir cuál era la más corta.",
     balance: [["mas", "Fácil de entender y siempre correcta."], ["menos", "Exponencial: con ciclos, el número de caminos explota."], ["menos", "No termina ni en 41 × 41 con ciclos."]] },
   { id: "bt", corto: "BT", nombre: "Backtracking con poda", py: "Backtracking con poda", color: "#b07d12",
-    tiempo: "O((N·M)²)", espacio: "O(N·M)", optimo: true,
+    tiempo: "O(n²)", espacio: "O(n)", optimo: true,
     conocido: "Ramificación y poda (<i>branch and bound</i>) sobre una búsqueda en profundidad, con poda por dominancia.",
     idea: "La misma búsqueda recursiva, pero <b>antes de entrar a una rama</b> pregunta si vale la pena. <b>Poda por cota:</b> si pasos + distancia Manhattan ≥ la mejor solución, la descarta. <b>Poda por dominancia:</b> si ya llegó a esa casilla con menos pasos, también la descarta.",
     analogia: "Un explorador que abandona un pasillo en cuanto sabe que ya llegó a ese punto por un camino más corto.",
     balance: [["mas", "Pasa de exponencial a polinomial."], ["mas", "Encuentra el óptimo."], ["menos", "Sigue siendo cuadrática y usa recursión profunda."]] },
   { id: "gr", corto: "VZ", nombre: "Voraz", py: "Voraz (Greedy)", color: "#4f7a3a",
-    tiempo: "O(V·log V)", espacio: "O(V)", optimo: false,
+    tiempo: "O(n log n)", espacio: "O(n)", optimo: false,
     conocido: "Búsqueda voraz «primero el mejor» (<i>Greedy Best-First Search</i>) con la distancia Manhattan como heurística. <b>No es Dijkstra:</b> Dijkstra también es voraz, pero elige por la distancia ya recorrida y por eso sí es óptimo (aquí equivale a la PD). A* combina las dos ideas.",
     idea: "Siempre expande la casilla de la frontera que <b>parece</b> más cercana a la meta (menor distancia Manhattan), sin importar lo que costó llegar a ella. Usa una cola de prioridad (<i>heap</i>).",
     analogia: "Caminar siempre hacia donde se ve la salida, aunque al final haya un muro y toque devolverse.",
     balance: [["mas", "Rapidísimo: explora muy pocas casillas."], ["menos", "<b>No garantiza</b> el camino más corto."], ["menos", "Una buena decisión local puede ser una mala decisión global."]] },
   { id: "dc", corto: "DV", nombre: "Divide y vencerás", py: "Divide y vencerás", color: "#2f5d8a",
-    tiempo: "O(d·log d) típico", espacio: "O(V)", optimo: true,
+    tiempo: "O(n log n) típico", espacio: "O(n)", optimo: true,
     conocido: "Recursión por punto medio: la idea de <b>Hirschberg</b> (1975) aplicada a caminos, como en el <i>Divide-and-Conquer Frontier Search</i> de Korf (1999). Es el mismo esquema del teorema de Savitch.",
     idea: "El camino más corto A→B pasa por un <b>punto medio M</b>. Primero lo encuentra (<b>dividir</b>), luego resuelve A→M y M→B recursivamente (<b>vencer</b>) y une las dos mitades (<b>combinar</b>). La recurrencia T(d) = 2T(d/2) + Θ(d) da Θ(d log d) por el Teorema Maestro.",
     analogia: "Planear un viaje largo eligiendo primero la ciudad intermedia y luego cada mitad por separado.",
-    balance: [["mas", "Óptimo, con recursión de solo log d niveles."], ["menos", "Los subproblemas <b>se solapan</b>: vuelve a recorrer las mismas zonas."], ["menos", "En salas abiertas llega a O(V·d)."]] },
+    balance: [["mas", "Óptimo, con recursión de solo log d niveles."], ["menos", "Los subproblemas <b>se solapan</b>: vuelve a recorrer las mismas zonas."], ["menos", "En salas abiertas llega a O(n²)."]] },
   { id: "pd", corto: "PD", nombre: "Programación dinámica", py: "Programación dinámica", color: "#7a3b69",
-    tiempo: "O(N·M)", espacio: "O(N·M)", optimo: true,
+    tiempo: "O(n)", espacio: "O(n)", optimo: true,
     conocido: "Búsqueda en anchura (<b>BFS</b>) por capas, conocida en laberintos como <b>algoritmo de Lee</b> (1961). Con pasos de costo 1 hace exactamente lo mismo que <b>Dijkstra</b>.",
     idea: "Llena una tabla <code>dist[x][y]</code> con los pasos mínimos desde el inicio, usando la recurrencia <code>dist[v] = 1 + min(dist[u])</code> sobre sus vecinos. La llena <b>por capas</b> (0, 1, 2, …), así que cada casilla se calcula <b>una sola vez</b>. Al final reconstruye el camino leyendo la tabla hacia atrás.",
     analogia: "Una piedra que cae en un estanque: cada onda es una capa de la tabla y llega a todas las casillas a la vez.",
@@ -1505,39 +1515,16 @@ function reproducirLab() {
 }
 
 // ======================= §5 Resultados =======================
-let familia = "perfecto", metrica = "ms", escalaEje = "lineal", grafica = null;
+let familia = "perfecto", metrica = "ms";
 const NOMBRE_METRICA = { ms: "Tiempo (ms)", kb: "Memoria pico (KB)", explorados: "Casillas exploradas" };
-const potencia10 = v => Number.isInteger(Math.log10(v)) ? fmt(v) : "";   // solo 1, 10, 100, … en los ejes log
 
 function dibujarResultados() {
   const R = window.RESULTADOS;
   if (!R) {
-    $("#resultados .grafica").outerHTML = `<p class="aviso">No se encontró <code>resultados.js</code>. Ejecuta el notebook <code>laberintos.ipynb</code> (sección 12) para generarlo.</p>`;
+    $("#tabla").innerHTML = `<p class="aviso">No se encontró <code>resultados.js</code>. Ejecuta el notebook <code>laberintos.ipynb</code> (sección 12) para generarlo.</p>`;
     return;
   }
   const filas = R.familias[familia];
-  const datasets = ALG.map(a => ({
-    label: `${a.corto} · ${a.nombre}`, borderColor: a.color, backgroundColor: a.color, borderWidth: a.id === "pd" ? 3 : 1.8, pointRadius: 3.5,
-    pointStyle: { fb: "rect", bt: "triangle", gr: "circle", dc: "rectRot", pd: "rectRounded" }[a.id],
-    data: filas[a.py].filter(d => d.estado === "ok" && d[metrica] != null).map(d => ({ x: d.libres, y: Math.max(d[metrica], 1e-3) })),
-  }));
-  if (window.Chart) {
-    if (grafica) grafica.destroy();
-    Chart.defaults.color = "#6b665c"; Chart.defaults.font.family = "IBM Plex Sans";
-    const eje = (texto) => ({ ...(escalaEje === "log" ? { type: "logarithmic", ticks: { callback: potencia10 } } : { type: "linear", beginAtZero: true, ticks: { callback: v => fmt(v) } }),
-      title: { display: true, text: `${texto} (escala ${escalaEje === "log" ? "log" : "lineal"})` }, grid: { color: "#e3ddcf" }, border: { color: "#1d1c1a" } });
-    grafica = new Chart($("#grafica"), {
-      type: "line", data: { datasets },
-      options: {
-        maintainAspectRatio: false, animation: reducido ? false : { duration: 400 }, interaction: { mode: "nearest", intersect: false },
-        scales: { x: eje("Casillas libres V"), y: eje(NOMBRE_METRICA[metrica]) },
-        plugins: { legend: { labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(+c.parsed.y.toPrecision(4))}` } } },
-      },
-    });
-  } else {
-    $("#resultados .grafica").innerHTML = `<p class="aviso">No se pudo cargar Chart.js (¿sin conexión?). La tabla de abajo tiene todos los datos.</p>`;
-  }
-  $("#fig-grafica").innerHTML = `<b>Fig. 2.</b> ${NOMBRE_METRICA[metrica]} frente al número de casillas libres, en laberintos ${familia === "perfecto" ? "perfectos" : "con 10 % de ciclos"}.`;
   const celda = (d) => {
     if (d.estado === "limite") return `<td style="color:var(--fb)">límite</td>`;
     if (d.estado === "omitido") return `<td style="color:var(--gris)">—</td>`;
@@ -1582,33 +1569,47 @@ function conmutador(sel, alCambiar) {
 }
 
 // ======================= §6 Teoría =======================
-const TEO = [   // log10(operaciones) en función de V
-  { id: "fb", f: V => V * Math.log10(4), txt: "4^V" },
-  { id: "bt", f: V => 2 * Math.log10(V), txt: "V²" },
-  { id: "gr", f: V => Math.log10(V * Math.log2(V)), txt: "V·log V" },
-  { id: "dc", f: V => Math.log10(V * Math.log2(V)), txt: "d·log d, d ≤ V" },
-  { id: "pd", f: V => Math.log10(V), txt: "V" },
-];
-function duracion(log10ops) {
-  const s = log10ops - 9;   // 10^9 operaciones por segundo
-  if (s > 9) return `≈ 10^${fmt(Math.round(s - 7.5))} años`;
-  const seg = Math.pow(10, s);
-  if (seg < 1e-3) return `${(seg * 1e6).toFixed(seg < 1e-6 ? 3 : 1)} µs`;
-  if (seg < 1) return `${(seg * 1e3).toFixed(1)} ms`;
-  if (seg < 3600) return `${seg.toFixed(1)} s`;
-  if (seg < 31557600) return `${(seg / 3600).toFixed(1)} h`;
-  return `${(seg / 31557600).toFixed(1)} años`;
+function dibujarBigO() {
+  if (!window.Chart) {
+    document.querySelectorAll(".grafica-bigo").forEach(g => { g.innerHTML = `<p class="aviso">No se pudo cargar Chart.js (¿sin conexión?).</p>`; });
+    return;
+  }
+  Chart.defaults.color = "#6b665c"; Chart.defaults.font.family = "'IBM Plex Sans', system-ui, sans-serif";
+  const xs = [];
+  for (let i = 0; i <= 200; i++) xs.push(i / 10);   // n de 0 a 20: basta para ver la forma de cada curva
+  const log2 = (n) => n > 1 ? Math.log2(n) : 0;
+  const linea = (etiqueta, color, f, extra = {}) => ({ label: etiqueta, data: xs.map(n => ({ x: n, y: f(n) })), borderColor: color, backgroundColor: color, borderWidth: 3.5, pointRadius: 0, ...extra });
+  const referencia = (etiqueta, f) => linea(etiqueta, "#b9b2a3", f, { borderWidth: 1.5, borderDash: [4, 4] });
+  const color = (id) => ALG.find(a => a.id === id).color;
+  // líneas superpuestas (misma clase): rayas de colores alternados sobre la misma curva
+  const rayas = (k, total) => ({ borderDash: [10, 10 * (total - 1)], borderDashOffset: 10 * k });
+  const tiempo = [
+    linea("FB · O(4ⁿ)", color("fb"), n => 4 ** n),
+    linea("BT · O(n²)", color("bt"), n => n * n),
+    linea("VZ · O(n log n)", color("gr"), n => n * log2(n), rayas(0, 2)),
+    linea("DV · O(n log n)", color("dc"), n => n * log2(n), rayas(1, 2)),
+    linea("PD · O(n)", color("pd"), n => n),
+    referencia("O(log n)", log2), referencia("O(1)", () => 1),
+  ];
+  const espacio = [
+    ...ALG.map((a, k) => linea(`${a.corto} · O(n)`, a.color, n => n, rayas(k, ALG.length))),
+    referencia("O(n²)", n => n * n), referencia("O(log n)", log2), referencia("O(1)", () => 1),
+  ];
+  const opciones = (eje) => ({
+    maintainAspectRatio: false, animation: reducido ? false : { duration: 500 }, events: [],
+    scales: {
+      x: { type: "linear", min: 0, max: 20, ticks: { display: false }, grid: { display: false }, border: { color: "#1d1c1a", width: 2 }, title: { display: true, text: "n (tamaño de entrada)" } },
+      y: { min: 0, max: 100, ticks: { display: false }, grid: { display: false }, border: { color: "#1d1c1a", width: 2 }, title: { display: true, text: eje } },
+    },
+    plugins: { legend: { position: "top", labels: { usePointStyle: true, pointStyle: "line", boxWidth: 26, padding: 12 } }, tooltip: { enabled: false } },
+  });
+  graficasBigO.forEach(g => g.destroy());
+  graficasBigO = [
+    new Chart($("#bigo-tiempo"), { type: "line", data: { datasets: tiempo }, options: opciones("Operaciones") }),
+    new Chart($("#bigo-espacio"), { type: "line", data: { datasets: espacio }, options: opciones("Memoria") }),
+  ];
 }
-function dibujarTeoria() {
-  const V = Math.round(Math.pow(10, +$("#v-teo").value));
-  $("#v-teo-v").textContent = fmt(V) + (V >= 4e5 && V <= 6e5 ? " (≈ 1001 × 1001)" : "");
-  $("#barras").innerHTML = TEO.map(t => {
-    const a = ALG.find(x => x.id === t.id), L = t.f(Math.max(V, 2));
-    return `<div class="barra" style="--c:${a.color}"><span><span class="cod" style="--c:${a.color}">${a.corto}</span> ${a.nombre}</span>
-      <div class="carril"><div class="relleno" style="width:${Math.min(100, L / 15 * 100)}%"></div></div>
-      <span class="mono">O(${t.txt}) → ${duracion(L)}</span></div>`;
-  }).join("");
-}
+let graficasBigO = [];
 
 // ======================= Portada y veredicto (datos de resultados.js) =======================
 function dibujarDatos() {
@@ -1660,7 +1661,7 @@ function dibujarConclusiones() {
 
   $("#razones-pd").innerHTML = [
     "<b>Siempre encuentra el camino más corto.</b> Es exacta, como la fuerza bruta, pero sin su costo exponencial.",
-    `<b>Tiempo y memoria O(N·M):</b> cada casilla se calcula una sola vez.${pdP ? ` Resolvió ${nMax} × ${nMax} (${fmt(pdP.libres)} casillas libres) en ${seg(pdP)}${ok(pdC) ? `, y con ciclos en ${seg(pdC)}` : ""}.` : ""}`,
+    `<b>Tiempo y memoria O(n):</b> cada casilla se calcula una sola vez.${pdP ? ` Resolvió ${nMax} × ${nMax} (${fmt(pdP.libres)} casillas libres) en ${seg(pdP)}${ok(pdC) ? `, y con ciclos en ${seg(pdC)}` : ""}.` : ""}`,
     "<b>No depende de la forma del laberinto:</b> rinde igual en laberintos perfectos y con ciclos, donde la fuerza bruta y el backtracking dejan de terminar.",
     R ? `<b>Es la exacta más rápida${desde && desde > R.tamanos[0] ? ` desde ${desde} × ${desde}` : ""}:</b> en ${nComp} × ${nComp}, divide y vencerás tardó ${veces(g("perfecto", DV, nComp), g("perfecto", PD, nComp))} más, y en ${nTodos} × ${nTodos} el backtracking tardó ${veces(g("perfecto", BT, nTodos), g("perfecto", PD, nTodos))} y la fuerza bruta ${veces(g("perfecto", FB, nTodos), g("perfecto", PD, nTodos))}.` : "<b>Es la exacta más rápida</b> en los laberintos grandes.",
     "<b>Es iterativa:</b> no tiene límite de recursión ni riesgo de desbordar la pila de llamadas.",
@@ -1674,7 +1675,7 @@ function dibujarConclusiones() {
     ["pd", "Cualquier laberinto, sobre todo cuando se exige el camino más corto o el laberinto es grande.",
       "Llena la tabla <code>dist</code> una sola vez, capa por capa. Su costo no depende de cuántos caminos distintos haya.",
       ev(() => `${nMax} × ${nMax}: ${seg(pdP)} (perfecto) y ${seg(pdCm)} (con ciclos), siempre con el camino óptimo.`),
-      "Prácticamente nunca. Solo necesita memoria para la tabla completa, O(N·M)."],
+      "Prácticamente nunca. Solo necesita memoria para la tabla completa, O(n)."],
     ["gr", "Cuando basta con <i>un</i> camino rápido, aunque no sea el más corto, o cuando el laberinto es perfecto (un único camino).",
       "Avanza directo hacia la meta guiado por la distancia Manhattan y explora muy pocas casillas. En un laberinto perfecto el único camino es también el más corto.",
       ev(() => `Con ciclos en ${nMax} × ${nMax}: ${veces(pdCm, vzC)} más rápido que la PD (exploró ${fmt(vzC.explorados)} casillas frente a ${fmt(pdCm.explorados)}), pero con ${fmt(vzC.pasos - pdCm.pasos)} pasos de más. Perfecto: ${seg(vzP)}, camino óptimo.`),
@@ -1805,7 +1806,6 @@ $("#indice").innerHTML = ALG.map((a, i) => `<li><button role="tab" style="--c:${
 $("#indice").addEventListener("click", e => { const b = e.target.closest("button"); if (b) mostrarEstrategia(+b.dataset.i); });
 for (const id of ["#tam", "#cic"]) $(id).addEventListener("change", () => nuevoLaberinto(false));
 for (const id of ["#tam", "#cic", "#vel"]) $(id).addEventListener("input", etiquetas);
-$("#v-teo").addEventListener("input", dibujarTeoria);
 $("#b-nuevo").addEventListener("click", () => nuevoLaberinto(true));
 $("#b-carrera").addEventListener("click", carrera);
 $("#b-paso").addEventListener("click", paso);
@@ -1830,7 +1830,6 @@ addEventListener("resize", () => { paneles.forEach(pintarTodo); pintarLab(); });
 document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && document.body.classList.contains("expo")) modoExpo(false); });
 conmutador("#g-familia", v => familia = v);
 conmutador("#g-metrica", v => metrica = v);
-conmutador("#g-escala", v => escalaEje = v);
 $("#sel-n").addEventListener("change", dibujarRelativos);
 
 etiquetas();
@@ -1840,7 +1839,7 @@ mostrarEstrategia(4);
 elegirLaberintoLab(1);
 elegirAlgLab(0);
 dibujarResultados();
-dibujarTeoria();
+dibujarBigO();
 dibujarDatos();
 dibujarConclusiones();
 figuraPortada();
