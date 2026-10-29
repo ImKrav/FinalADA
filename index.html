@@ -1668,7 +1668,7 @@ function dibujarConclusiones() {
 
   const vzC = g("ciclos", VZ, nMax), pdCm = g("ciclos", PD, nMax), vzP = g("perfecto", VZ, nMax);
   const btMax = ultimo("ciclos", BT), btFallo = R && R.familias.ciclos[BT].find(d => d.estado === "limite");
-  const fbMax = ultimo("ciclos", FB), dvMax = ultimo("perfecto", DV);
+  const fbMax = ultimo("ciclos", FB), dvP = ultimo("perfecto", DV), dvC = ultimo("ciclos", DV);
   const ev = (txt) => R ? txt() : "—";
   const filas = [
     ["pd", "Cualquier laberinto, sobre todo cuando se exige el camino más corto o el laberinto es grande.",
@@ -1685,7 +1685,7 @@ function dibujarConclusiones() {
       "Laberintos grandes con ciclos: sigue siendo cuadrático y usa recursión profunda."],
     ["dc", "Laberintos de pasillos estrechos, o cuando se quiere repartir el trabajo: las mitades A → M y M → B son independientes y podrían resolverse en paralelo.",
       "Con pasillos estrechos cada inundación cubre unas d casillas, así que el costo queda en Θ(d log d) con solo log d niveles de recursión.",
-      ev(() => `Siempre óptimo, pero ${veces(g("perfecto", DV, nTodos), g("perfecto", PD, nTodos))} más lento que la PD en ${nTodos} × ${nTodos} y ${veces(dvMax, g("perfecto", PD, dvMax.n))} en ${dvMax.n} × ${dvMax.n}; llegó hasta ${dvMax.n} × ${dvMax.n}.`),
+      ev(() => `Siempre óptimo, pero ${veces(dvP, g("perfecto", PD, dvP.n))} más lento que la PD en ${dvP.n} × ${dvP.n} (perfecto) y ${veces(dvC, g("ciclos", PD, dvC.n))} en ${dvC.n} × ${dvC.n} (con ciclos). Por el límite de 30 s no se probó en tamaños mayores.`),
       "Laberintos grandes o abiertos: repite inundaciones porque sus subproblemas se solapan."],
     ["fb", "Laberintos diminutos o perfectos (con un solo camino), o como referencia para comprobar que otro algoritmo da el óptimo.",
       "Si solo existe un camino, no hay ramas que probar y visita cada casilla una vez. En tamaños diminutos su simplicidad no cuesta nada.",
